@@ -210,6 +210,7 @@ __marimo__/
 ml/service/inference
 ml/biomarcers/checkpoints_segformer_15hours
 ml/biomarcers/checkpoints_deeplabv3_plus
+ml/biomarcers/checkpoints_transunet
 
 # dataset dir
 ml/data/AV-Seg
