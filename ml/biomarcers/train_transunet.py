@@ -56,6 +56,24 @@ def train_fold(train_folds, val_fold, patience=5):
     df_train = pd.concat(train_dfs).reset_index(drop=True)
     df_val = pd.read_csv(f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{val_fold}.csv")
 
+    BASE_PATH = "/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold"
+
+    for df in [df_train, df_val]:
+        df["image"] = df["image"].str.replace(
+            r"D:\\aspirantura\\PROF\\npy_article_fold",
+            BASE_PATH,
+            regex=True
+        )
+        df["mask"] = df["mask"].str.replace(
+            r"D:\\aspirantura\\PROF\\npy_article_fold",
+            BASE_PATH,
+            regex=True
+        )
+
+
+        df["image"] = df["image"].str.replace("\\", "/")
+        df["mask"] = df["mask"].str.replace("\\", "/")
+
     train_dataset = ImageMaskDataset(df_train, augment_prob=0.5)
     val_dataset = ImageMaskDataset(df_val, augment_prob=0.0)
 
