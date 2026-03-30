@@ -1,0 +1,31 @@
+C:\Users\Acer\Desktop\github\segmentation_biomarcers_pp\ml\biomarcers\train_transunet.py:83: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. 
+Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler()
+Train Folds: [1, 2], Val Fold: 3 | Epoch 1:   0%|                                                                                  | 0/2623 [00:00<?, ?batch/s]C:\Users\Acer\Desktop\github\segmentation_biomarcers_pp\ml\biomarcers\train_transunet.py:102: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with torch.cuda.amp.autocast():
+Train Folds: [1, 2], Val Fold: 3 | Epoch 1: 100%|████████████████████████████████████████████████████████| 2623/2623 [16:17<00:00,  2.68batch/s, avg_loss=3.46]
+Epoch 1 finished, Avg Loss: 3.4626, Time: 977.6s
+Validation Fold 3 Epoch 1: 100%|██████████████████████████████████████████████████████████████████████████| 1312/1312 [04:41<00:00,  4.67batch/s, dice=2.99e-9]
+Validation Dice: 0.0000
+Best model updated! Dice: 0.0000
+Train Folds: [1, 2], Val Fold: 3 | Epoch 2: 100%|████████████████████████████████████████████████████████| 2623/2623 [16:44<00:00,  2.61batch/s, avg_loss=2.36]
+Epoch 2 finished, Avg Loss: 2.3603, Time: 1004.3s
+Validation Fold 3 Epoch 2: 100%|███████████████████████████████████████████████████████████████████████████| 1312/1312 [04:36<00:00,  4.75batch/s, dice=0.0136]
+Validation Dice: 0.0136
+Best model updated! Dice: 0.0136
+Train Folds: [1, 2], Val Fold: 3 | Epoch 3: 100%|████████████████████████████████████████████████████████| 2623/2623 [16:23<00:00,  2.67batch/s, avg_loss=2.27]
+Epoch 3 finished, Avg Loss: 2.2656, Time: 983.1s
+Validation Fold 3 Epoch 3: 100%|███████████████████████████████████████████████████████████████████████████| 1312/1312 [04:31<00:00,  4.84batch/s, dice=0.0561] 
+Validation Dice: 0.0561
+Best model updated! Dice: 0.0561
+Train Folds: [1, 2], Val Fold: 3 | Epoch 4: 100%|█████████████████████████████████████████████████████████| 2623/2623 [15:55<00:00,  2.74batch/s, avg_loss=2.2]
+Epoch 4 finished, Avg Loss: 2.1959, Time: 955.8s
+Validation Fold 3 Epoch 4: 100%|███████████████████████████████████████████████████████████████████████████| 1312/1312 [04:24<00:00,  4.95batch/s, dice=0.0919] 
+Validation Dice: 0.0919
+Best model updated! Dice: 0.0919
+Train Folds: [1, 2], Val Fold: 3 | Epoch 5: 100%|████████████████████████████████████████████████████████| 2623/2623 [16:26<00:00,  2.66batch/s, avg_loss=2.14]
+Epoch 5 finished, Avg Loss: 2.1413, Time: 986.4s
+Validation Fold 3 Epoch 5: 100%|████████████████████████████████████████████████████████████████████████████| 1312/1312 [04:36<00:00,  4.75batch/s, dice=0.102] 
+Validation Dice: 0.1015
+Best model updated! Dice: 0.1015
+Training finished. Best Dice: 0.1015
