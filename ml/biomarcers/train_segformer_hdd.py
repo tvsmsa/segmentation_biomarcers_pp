@@ -61,11 +61,13 @@ def dice_score_fast(preds, targets, ignore_index=config.IGNORE_INDEX):
 
 def train_fold(train_folds, val_fold, patience=5):
     # Загружаем CSV
-    train_dfs = [pd.read_csv(
-        f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{f}.csv") for f in train_folds]
+    train_dfs = [pd.read_csv( f"D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{f}.csv") for f in train_folds]
+    # Для kaggle
+    #train_dfs = [pd.read_csv( f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{f}.csv") for f in train_folds]
     df_train = pd.concat(train_dfs).reset_index(drop=True)
-    df_val = pd.read_csv(
-        f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{val_fold}.csv")
+    df_val = pd.read_csv( f"D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{val_fold}.csv")
+    # Для kaggle
+    #df_val = pd.read_csv( f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{val_fold}.csv")
 
     # Datasets
     train_dataset = ImageMaskDataset(df_train, augment_prob=0.5)
