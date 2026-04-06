@@ -11,6 +11,7 @@ import pandas as pd
 from ml.biomarcers.config import Config
 from ml.biomarcers.dataloader import ImageMaskDataset
 from ml.biomarcers.utils_loss import TverskyLoss
+from ml.biomarcers.metrics import dice_score_fast
 
 config = Config()
 torch.multiprocessing.set_start_method("spawn", force=True)
@@ -19,44 +20,6 @@ torch.multiprocessing.set_start_method("spawn", force=True)
 
 
 @torch.no_grad()
-def dice_score_fast(preds, targets, ignore_index=config.IGNORE_INDEX):
-    """
-    Быстрый Dice для мультикласса без one-hot, только hard labels
-    preds: logits (B, C, H, W)
-    targets: (B, H, W)
-    """
-    preds_labels = preds.argmax(dim=1)  # (B,H,W)
-    num_classes = preds.shape[1]
-
-    dice_sum = 0.0
-    count = 0
-    eps = 1e-6
-
-    for cls in range(1, num_classes):
-        pred_mask = (preds_labels == cls)
-        target_mask = (targets == cls)
-
-        # игнорируем пиксели ignore_index
-        valid_mask = (targets != ignore_index)
-        pred_mask = pred_mask & valid_mask
-        target_mask = target_mask & valid_mask
-
-        TP = (pred_mask & target_mask).sum().item()
-        FP = (pred_mask & (~target_mask)).sum().item()
-        FN = ((~pred_mask) & target_mask).sum().item()
-
-        if TP + FP + FN == 0:  # если класс отсутствует
-            continue
-
-        dice_cls = (2 * TP + eps) / (2 * TP + FP + FN + eps)
-        dice_sum += dice_cls
-        count += 1
-
-    if count == 0:
-        return 0.0
-    return dice_sum / count
-
-
 # Основная функция обучения
 
 def train_fold(train_folds, val_fold, patience=5):
