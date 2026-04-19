@@ -160,7 +160,7 @@ def train_fold(train_folds, val_fold, patience=5):
 if __name__ == "__main__":
     torch.multiprocessing.set_start_method("spawn", force=True)
 
-    FOLD = 1
+    FOLD = 2
 
     if FOLD == 1:
         train_folds = [2, 3]
