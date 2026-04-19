@@ -127,14 +127,14 @@ def train_fold(train_folds, val_fold, patience=5):
         print(f"Validation Dice: {avg_dice:.4f}")
 
         # Сохранение чекпоинтов
-        checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_epoch_{epoch+1}.pth")
-        torch.save({
-            "epoch": epoch+1,
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimizer.state_dict(),
-            "loss": epoch_loss,
-            "val_dice": avg_dice
-        }, checkpoint_path)
+        # checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_epoch_{epoch+1}.pth")
+        # torch.save({
+        #     "epoch": epoch+1,
+        #     "model_state_dict": model.state_dict(),
+        #     "optimizer_state_dict": optimizer.state_dict(),
+        #     "loss": epoch_loss,
+        #     "val_dice": avg_dice
+        # }, checkpoint_path)
 
         if avg_dice > best_dice:
             best_dice = avg_dice
@@ -160,7 +160,7 @@ def train_fold(train_folds, val_fold, patience=5):
 if __name__ == "__main__":
     torch.multiprocessing.set_start_method("spawn", force=True)
 
-    FOLD = 2
+    FOLD = 3
 
     if FOLD == 1:
         train_folds = [2, 3]
