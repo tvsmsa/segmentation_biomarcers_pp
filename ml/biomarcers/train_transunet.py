@@ -15,7 +15,7 @@ config = TransUNetConfig()
 torch.multiprocessing.set_start_method("spawn", force=True)
 
 # Без изменений
-@torch.no_grad()
+# @torch.no_grad()
 
 def train_fold(train_folds, val_fold, patience=5):
     #train_dfs = [pd.read_csv(f"D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{f}.csv") for f in train_folds]
