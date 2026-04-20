@@ -215,5 +215,5 @@ ml/biomarcers/checkpoints_transunet
 # dataset dir
 ml/data/AV-Seg
 ml/biomarcers/data/
-xml_files/
+xml_files_test/
 xml_info_files/
