@@ -1,8 +1,8 @@
 from PIL import Image
 
-image_id = 9828
+image_id = 6451
 file_name = f"{image_id}_3D-Macula-6x6_RETINA01_Landscape_001"
-index = 16
+index = image_id
 img = Image.open(f"dataset/{index}/{file_name}.jpg")
 res = img.crop((37, 220, 450, 630))
 #res.show()
