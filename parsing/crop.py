@@ -1,3 +1,6 @@
+"""
+Скрипт чтобы обрезать macula картинки. 
+"""
 from PIL import Image
 
 image_id = 6451
