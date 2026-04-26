@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<Report type="OS" orientation="1">
+    <Info device_type="3D OCT-2000FA(Ver.8.42)" logo="..\shared\Topcon_logo.jpg" report_date="28.05.2018" />
+    <Normative name="">
+        <Line text="Disc parameters are determined at the reference plane height of 120 microns" />
+        <Line text=" from the RPE plane in this version." />
+    </Normative>
+    <Practice address="" practitioner="" Technician="" HospitalName="" Phone="" />
+    <Patient id="Абрамова" first_name="Татьяна Николаевна" last_name="Абрамова" sex="F" birth_date="01.01.1955" age="63" ethnicity="Caucasian" />
+    <Comment file="comments" file_name="159_files\comment.html" />
+    <Dataset id="1">
+        <Scan eye="1" iqThreshold="30" iqThreshold2="0" fastq="31" type="2" skipmode="0" fixationTitle="1" fixation="1" date="28.05.2018" analysisVersion="(2.0.7)" Refmirror_pos="Vitreous" EyeMagniValue="1,008">
+            <Size x="512" y="128" />
+            <Length x="6,0" y="6,0" />
+        </Scan>
+        <Analysis name="NFL00" module="NFL" desc="ILM - RNFL/GCL" version="8.3.7.40527">
+            <Image id="color_fundus" file_name="159_files\view_color_fundus.jpg" ir_colorphoto="Color photo" />
+            <Image id="redfree" file_name="159_files\analysis_redfree.jpg" ir_redfree="Red-free" />
+            <Image id="thickness_map" file_name="159_files\analysis_Rpt00_thickness_map.jpg" />
+            <Image id="thickness_color" file_name="159_files\analysis_Rpt00_thickness_color.jpg" />
+            <Image id="significance_map" file_name="159_files\analysis_significance_map.jpg" />
+            <Image id="shadow_gram_color" file_name="159_files\analysis_shadow_gram_color.jpg" />
+            <Image id="circular_tomogram_image" file_name="159_files\analysis_circular_tomogram_image.jpg" />
+            <Image id="circular_graph" file_name="159_files\analysis_thickness_map.jpg" direction="T-S-N-I-T" />
+            <Image id="tnist_color" file_name="159_files\analysis_tnist_color.jpg" />
+            <Image id="circle_4" file_name="159_files\analysis_circle_4.jpg">
+                <Attr id="circle_total" type="number" value="72" />
+                <Attr id="circle_superior" type="number" value="95" />
+                <Attr id="circle_inferior" type="number" value="75" />
+            </Image>
+            <Image id="circle_12" file_name="159_files\analysis_circle_12.jpg" />
+            <Image id="circle_36" file_name="159_files\analysis_circle_36.jpg" />
+        </Analysis>
+        <DiscTopo name="Disc Segmentation">
+            <Image id="reference_plane_view" file_name="159_files\analysis_reference_plane_view.jpg" />
+            <Image id="horizontal_tomogram" file_name="159_files\analysis_horizontal_tomogram.jpg" y="0" />
+            <Image id="rd_ratio" file_name="159_files\analysis_rd_ratio.jpg" />
+            <Attr id="disc_area" type="number" value="3,75" />
+            <Attr id="cup_area" type="number" value="3,22" />
+            <Attr id="rim_area" type="number" value="0,52" />
+            <Attr id="cd_area_ratio" type="number" value="0,86" />
+            <Attr id="linear_cdr" type="number" value="0,93" />
+            <Attr id="vertical_cdr" type="number" value="0,95" />
+            <Attr id="cup_volume" type="number" value="0,88" />
+            <Attr id="rim_volume" type="number" value="0,02" />
+            <Attr id="horizontal_dd" type="number" value="2,04" />
+            <Attr id="vertical_dd" type="number" value="2,26" />
+        </DiscTopo>
+        <Notation value="0" />
+    </Dataset>
+    <ReportTitle name="3D Disc Report w/ Topography" />
+</Report>

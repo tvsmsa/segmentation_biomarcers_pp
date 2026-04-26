@@ -24,6 +24,7 @@ def parse_xml(xml_content, filename):
     if patient is not None:
         data['patient_id'] = patient.get('id', '')
         data['age'] = patient.get('age', '')
+        data['sex'] = patient.get('sex', '')
         #data['ethnicity'] = patient.get('ethnicity', '')
     
     # Dataset и Scan
