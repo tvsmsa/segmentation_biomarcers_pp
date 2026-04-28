@@ -20,7 +20,7 @@ from iterstrat.ml_stratifiers import MultilabelStratifiedKFold
 # FOLD_TEMPLATE = r"D:\aspirantura3\aspirantura\PROF\train_article_fold_{}.csv"
 # OUTPUT_ROOT = r"D:\aspirantura3\aspirantura\PROF\npy_article_fold"
 
-# Для kaggle
+#  Для kaggle
 DATASET_CSV = r"/kaggle/input/datasets/andreikarabin/data-filter/aspirantura/PROF/dataset_final_clean.csv"
 AUGMENT_ROOT = r"/kaggle/input/datasets/andreikarabin/data-filter/aspirantura/PROF/augment"
 FOLD_TEMPLATE = r"/kaggle/input/datasets/andreikarabin/data-filter/aspirantura/PROF/train_article_fold_{}.csv"

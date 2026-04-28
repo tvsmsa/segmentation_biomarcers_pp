@@ -3,7 +3,7 @@ from ml.biomarcers.config import Config as SegformerConfig
 
 
 class DeepLabV3Config(SegformerConfig):
-    #: игнорируем цвет
+    #:  игнорируем цвет
     IGNORE_INDEX = 255
     #: размер патча
     PATCH_SIZE = 512
