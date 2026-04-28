@@ -151,7 +151,7 @@ def main():
     
     MODEL_PATH = "ml/biomarcers/checkpoints_transunet/fold_3/best_model.pth"
     MODEL_TYPE = "transunet" 
-    TEST_CSV = "D:\\small_dataset\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_1.csv" 
+    TEST_CSV = "D:\\aspirantura3\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_1.csv" 
     MODEL_NAME = "TransUNet_Fold2"
     
     print(f"\nLoading data from: {TEST_CSV}")
