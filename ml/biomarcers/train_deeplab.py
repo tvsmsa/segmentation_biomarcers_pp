@@ -28,6 +28,25 @@ def train_fold(train_folds, val_fold, patience=5):
 
     df_val = pd.read_csv(f"/kaggle/input/datasets/andreikarabin/data-filter/aspirantura/PROF/npy_article_fold/train_article_fold_{val_fold}.csv")
 
+    #Для kaggle
+
+    BASE_PATH = "/kaggle/input/datasets/andreikarabin/data-filter/aspirantura/PROF/npy_article_fold"
+
+    for df in [df_train, df_val]:
+        df["image"] = df["image"].str.replace(
+            r"D:\\aspirantura\\PROF\\npy_article_fold",
+            BASE_PATH,
+            regex=True
+        )
+        df["mask"] = df["mask"].str.replace(
+            r"D:\\aspirantura\\PROF\\npy_article_fold",
+            BASE_PATH,
+            regex=True
+        )
+
+
+        df["image"] = df["image"].str.replace("\\", "/")
+        df["mask"] = df["mask"].str.replace("\\", "/")
     # Datasets
     train_dataset = ImageMaskDataset(df_train, augment_prob=0.5)
     val_dataset = ImageMaskDataset(df_val, augment_prob=0.0)
