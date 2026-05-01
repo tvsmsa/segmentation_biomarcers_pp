@@ -15,10 +15,10 @@ from iterstrat.ml_stratifiers import MultilabelStratifiedKFold
 
 # CONFIG
 
-DATASET_CSV = r"D:\aspirantura\PROF\dataset_final_clean.csv"
-AUGMENT_ROOT = r"D:\aspirantura\PROF\augment"
-FOLD_TEMPLATE = r"D:\aspirantura\PROF\train_article_fold_{}.csv"
-OUTPUT_ROOT = r"D:\aspirantura\PROF\npy_article_fold"
+DATASET_CSV = r"D:\aspirantura3\aspirantura\PROF\dataset_final_clean.csv"
+AUGMENT_ROOT = r"D:\aspirantura3\aspirantura\PROF\augment"
+FOLD_TEMPLATE = r"D:\aspirantura3\aspirantura\PROF\train_article_fold_{}.csv"
+OUTPUT_ROOT = r"D:\aspirantura3\aspirantura\PROF\npy_article_fold"
 
 # Для kaggle
 # DATASET_CSV = r"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/dataset_final_clean.csv"

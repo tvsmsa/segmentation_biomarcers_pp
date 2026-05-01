@@ -10,8 +10,11 @@ from ml.biomarcers.dataloader import ImageMaskDataset
 from ml.biomarcers.model_transunet import TransUNet
 from transformers import SegformerForSemanticSegmentation
 from ml.biomarcers.metrics import print_class_metrics, compute_per_class_metrics
+import segmentation_models_pytorch as smp
+from ml.biomarcers.config_deeplab import DeepLabV3Config
 
 config = Config()
+deeplab_config = DeepLabV3Config()
 
 @torch.no_grad()
 def load_model(model_path, model_type="transunet"):
@@ -28,6 +31,15 @@ def load_model(model_path, model_type="transunet"):
             "nvidia/segformer-b2-finetuned-ade-512-512",
             num_labels=config.NUM_CLASSES,
             ignore_mismatched_sizes=True
+        ).to(config.DEVICE)
+    elif model_type == "deeplab":
+        model = smp.DeepLabV3Plus(
+            encoder_name="resnet50",
+            encoder_weights="imagenet",
+            classes=config.NUM_CLASSES,
+            encoder_output_stride=deeplab_config.OUTPUT_STRIDE,
+            decoder_atrous_rates=deeplab_config.ATROUS_RATES,
+            activation=None,
         ).to(config.DEVICE)
     else:
         raise ValueError(f"Unknown model type: {model_type}")
@@ -149,10 +161,10 @@ def main():
     Тестирование модели
     """
     
-    MODEL_PATH = "ml/biomarcers/checkpoints_transunet/fold_3/best_model.pth"
-    MODEL_TYPE = "transunet" 
-    TEST_CSV = "D:\\small_dataset\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_1.csv" 
-    MODEL_NAME = "TransUNet_Fold2"
+    MODEL_PATH = "ml/biomarcers/checkpoint_epoch_30.pth"
+    MODEL_TYPE = "deeplab" 
+    TEST_CSV = "D:\\aspirantura3\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_1.csv" 
+    MODEL_NAME = "Deeplab-1"
     
     print(f"\nLoading data from: {TEST_CSV}")
     df_test = pd.read_csv(TEST_CSV)

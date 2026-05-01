@@ -3,34 +3,25 @@ import time
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-from transformers import SegformerForSemanticSegmentation
 from transformers import get_cosine_schedule_with_warmup
 from tqdm import tqdm
 import pandas as pd
+import segmentation_models_pytorch as smp
 
-from ml.biomarcers.config import Config
+from ml.biomarcers.config_deeplab import DeepLabV3Config
 from ml.biomarcers.dataloader import ImageMaskDataset
 from ml.biomarcers.utils_loss import TverskyLoss
 from ml.biomarcers.metrics import dice_score_fast
 
-config = Config()
+config = DeepLabV3Config()
 torch.multiprocessing.set_start_method("spawn", force=True)
 
-# Dice score для мультикласса
-
-
-@torch.no_grad()
-# Основная функция обучения
 
 def train_fold(train_folds, val_fold, patience=5):
     # Загружаем CSV
     train_dfs = [pd.read_csv( f"D:\\aspirantura3\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{f}.csv") for f in train_folds]
-    # Для kaggle
-    #train_dfs = [pd.read_csv( f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{f}.csv") for f in train_folds]
     df_train = pd.concat(train_dfs).reset_index(drop=True)
     df_val = pd.read_csv( f"D:\\aspirantura3\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{val_fold}.csv")
-    # Для kaggle
-    #df_val = pd.read_csv( f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{val_fold}.csv")
 
     # Datasets
     train_dataset = ImageMaskDataset(df_train, augment_prob=0.5)
@@ -42,17 +33,22 @@ def train_fold(train_folds, val_fold, patience=5):
                             shuffle=False, num_workers=4, pin_memory=True)
 
     # Модель
-    model = SegformerForSemanticSegmentation.from_pretrained(
-        "nvidia/segformer-b2-finetuned-ade-512-512",
-        num_labels=config.NUM_CLASSES,
-        ignore_mismatched_sizes=True
+    model = smp.DeepLabV3Plus(
+        encoder_name="resnet50",
+        encoder_weights="imagenet",
+        classes=config.NUM_CLASSES,
+        encoder_output_stride=config.OUTPUT_STRIDE,
+        decoder_atrous_rates=config.ATROUS_RATES,
+        activation=None,
     ).to(config.DEVICE)
 
     optimizer = torch.optim.AdamW([
         # Backbone: low LR
-        {'params': model.segformer.encoder.parameters(), 'lr': 1e-5},
-        {'params': model.decode_head.parameters(), 'lr': 5e-4},        # Head: high LR
-    ])
+        {'params': model.encoder.parameters(), 'lr': 1e-5},
+        {'params': model.decoder.parameters(), 'lr': 5e-4},        # Head: high LR
+        {'params': model.segmentation_head.parameters(), 'lr': 5e-4},
+    ], weight_decay=1e-4)
+
     gradient_accumulation_steps = 2
     num_training_steps = (len(train_loader) //
                           gradient_accumulation_steps) * config.EPOCHS
@@ -91,13 +87,9 @@ def train_fold(train_folds, val_fold, patience=5):
         for i, (imgs, masks) in enumerate(loader_iter):
             imgs = imgs.to(config.DEVICE)
             masks = masks.to(config.DEVICE)
-            if epoch == 0 and i == 0:
-                print("Unique values in mask:", torch.unique(masks))
 
             with torch.cuda.amp.autocast():
-                logits = model(pixel_values=imgs).logits
-                logits = F.interpolate(
-                    logits, masks.shape[-2:], mode="bilinear", align_corners=False)
+                logits = model(imgs)
                 loss = combined_loss(logits, masks)
                 loss = loss / gradient_accumulation_steps
 
@@ -127,9 +119,7 @@ def train_fold(train_folds, val_fold, patience=5):
             imgs = imgs.to(config.DEVICE)
             masks = masks.to(config.DEVICE)
             with torch.no_grad():
-                logits = model(pixel_values=imgs).logits
-                logits = F.interpolate(
-                    logits, masks.shape[-2:], mode="bilinear", align_corners=False)
+                logits = model(imgs)
                 d = dice_score_fast(logits, masks)
                 all_dice += d
                 count += 1
@@ -155,13 +145,7 @@ def train_fold(train_folds, val_fold, patience=5):
             best_dice = avg_dice
             epochs_no_improve = 0
             best_model_path = os.path.join(checkpoint_dir, "best_model.pth")
-            torch.save({
-                "epoch": epoch+1,
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "loss": epoch_loss,
-                "val_dice": avg_dice
-            }, best_model_path)
+            torch.save(model.state_dict(), best_model_path)
             print(f"Best model updated! Dice: {best_dice:.4f}")
         else:
             epochs_no_improve += 1
