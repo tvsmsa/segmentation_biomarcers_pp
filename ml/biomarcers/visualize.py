@@ -8,6 +8,13 @@ import matplotlib.pyplot as plt
 from ml.biomarcers.config import Config
 from ml.biomarcers.model_transunet import TransUNet
 
+from transformers import SegformerForSemanticSegmentation
+
+from enum import Enum
+
+class ModelType(Enum):
+    TRANSUNET = "transunet"
+    SEGFORMER = "segformer"
 
 config = Config()
 
@@ -32,12 +39,21 @@ ID_TO_CLASS = {v: k for k, v in config.CLASS_TO_ID.items()}
 ID_TO_CLASS[0] = "background"
 
 
-def load_model(model_path, device="cpu"):
-    """Загружает модель TransUNet"""
-    model = TransUNet(
-        img_dim=config.PATCH_SIZE,
-        num_classes=config.NUM_CLASSES
-    ).to(device)
+def load_model(model_path, model_type=ModelType.TRANSUNET, device="cpu"):
+    if model_type == ModelType.TRANSUNET: # Загружает модель TransUNet
+        model = TransUNet(
+            img_dim=config.PATCH_SIZE,
+            num_classes=config.NUM_CLASSES
+        ).to(device)
+    elif model_type == ModelType.SEGFORMER: # Загружает модель SEGFORMER
+        model = SegformerForSemanticSegmentation.from_pretrained(
+            "nvidia/segformer-b2-finetuned-ade-512-512",
+            num_labels=config.NUM_CLASSES,
+            ignore_mismatched_sizes=True
+        ).to(device)
+    else:
+        raise ValueError(f"Unknown model type: {model_type}")
+
 
     checkpoint = torch.load(model_path, map_location=device)
     if 'model_state_dict' in checkpoint:
@@ -72,13 +88,19 @@ def load_sample(df, idx, image_dir, mask_dir):
     return image_tensor, mask_tensor, img_name
 
 
-def predict(model, image_tensor, mask_tensor, device="cpu"):
+def predict(model, image_tensor, mask_tensor, model_type=ModelType.TRANSUNET, device="cpu"):
     """Прогоняет изображение через модель, возвращает pred_mask, gt_mask, img_vis."""
     image_tensor = image_tensor.to(device)
     mask_tensor = mask_tensor.to(device)
 
     with torch.no_grad():
-        logits = model(image_tensor)
+        if model_type == ModelType.SEGFORMER:
+            outputs = model(pixel_values=image_tensor)
+            logits = outputs.logits
+        elif model_type == ModelType.TRANSUNET:
+            logits = model(image_tensor)
+        else:
+            raise ValueError(f"Unknown model type: {model_type}")
 
     if logits.shape[-2:] != mask_tensor.shape[-2:]:
         logits = F.interpolate(logits, size=mask_tensor.shape[-2:], mode="bilinear", align_corners=False)
@@ -201,7 +223,7 @@ def visualize_prediction(image, gt_mask, pred_mask, save_path=None):
 
 def main():
     # === Настройки ===
-    MODEL_PATH = "/Users/mamaevalex/aspirantura/PROF/models/best_model.pth"
+    MODEL_PATH = "/Users/mamaevalex/aspirantura/PROF/models/segformer/fold3_0,3045.pth"
     TEST_CSV = "/Users/mamaevalex/aspirantura/PROF/npy_article_fold/train_article_fold_1.csv"
 
     IMAGE_DIR = "/Users/mamaevalex/aspirantura/PROF/npy_article_fold/fold_1/images"
@@ -210,18 +232,18 @@ def main():
     DEVICE = torch.device("cpu")
 
     # === Загрузка ===
-    model = load_model(MODEL_PATH, DEVICE)
+    model = load_model(MODEL_PATH, ModelType.SEGFORMER, DEVICE)
     df = pd.read_csv(TEST_CSV)
     print(f"Samples: {len(df)}")
 
     # === Выбор снимка ===
-    sample_idx = 10 # Указать индекс [0; len(df) - 1]
+    sample_idx = 16 # Указать индекс [0; len(df) - 1]
 
     image_tensor, mask_tensor, img_name = load_sample(df, sample_idx, IMAGE_DIR, MASK_DIR)
     print(f"Loaded: {img_name}")
 
     # === Предсказание ===
-    pred_mask, gt_mask, img_vis = predict(model, image_tensor, mask_tensor, DEVICE)
+    pred_mask, gt_mask, img_vis = predict(model, image_tensor, mask_tensor, ModelType.SEGFORMER, DEVICE)
 
     # === Визуализация ===
     visualize_prediction(img_vis, gt_mask, pred_mask, save_path=f"vis_{sample_idx}.png")
