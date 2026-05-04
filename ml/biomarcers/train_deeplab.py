@@ -188,7 +188,7 @@ if __name__ == "__main__":
     torch.multiprocessing.set_start_method("spawn", force=True)
 
     # Задаём фолд вручную
-    FOLD = 2
+    FOLD = 1
 
     # Определяем train и val фолды
     if FOLD == 1:
