@@ -89,7 +89,7 @@ def train_fold(train_folds, val_fold, patience=5):
 
     def combined_loss(logits, targets):
         #return ce_loss(logits, targets) + 2.0 * tversky_loss(logits, targets)
-        return dice_loss(logits, targets)
+        return ce_loss(logits, targets) + 2.0 * dice_loss(logits, targets)
 
     scaler = torch.cuda.amp.GradScaler()
 
