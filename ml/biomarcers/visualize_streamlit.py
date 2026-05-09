@@ -192,16 +192,16 @@ def main():
     # === Загрузка ===
     model = load_model(MODEL_PATH, MODEL_TYPE, DEVICE)
     # === Выбор снимка ===
-    st.title('Классификация изображений глазного дна')
+    st.title('Сегментация изображений глазного дна')
     image_tensor = load_image()
     result = st.button('Распознать изображение')
     if result:
-    # === Предсказание ===
+        # === Предсказание ===
         pred_mask, img_vis = predict(model, image_tensor, MODEL_TYPE, DEVICE)
 
         # === Визуализация ===
         fig = visualize_prediction(img_vis, pred_mask, save_path=f"vis2.png")
-        st.write("Complete?")
+        st.write("Предсказание закончено")
         st.pyplot(fig)
 
 
