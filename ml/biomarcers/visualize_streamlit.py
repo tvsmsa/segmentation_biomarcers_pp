@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 
 from ml.biomarcers.config import Config
 from ml.biomarcers.model_transunet import TransUNet
+import streamlit as st
+from PIL import Image
+import io
 
 from transformers import SegformerForSemanticSegmentation
 
@@ -80,23 +83,21 @@ def load_model(model_path, model_type=ModelType.TRANSUNET, device="cpu"):
     print("Model loaded")
     return model
 
-
-def load_sample(df, idx, image_dir):
-    """Загружает один снимок и маску из датафрейма, возвращает тензоры."""
-    row = df.iloc[idx]
-
-    img_name = row['image'].split('\\')[-1]
-
-    image = np.load(os.path.join(image_dir, img_name))
-
-    # Нормализация как в ImageMaskDataset
-    img = image.astype(np.float32) / 255.0
-    for i, m in enumerate(config.IMAGENET_MEAN):
-        img[..., i] = (img[..., i] - m) / config.IMAGENET_STD[i]
-
-    image_tensor = torch.from_numpy(img).permute(2, 0, 1).float().unsqueeze(0)
-
-    return image_tensor, img_name
+def load_image():
+    uploaded_file = st.file_uploader(label='Выберите изображение для распознавания')
+    if uploaded_file is not None:
+        image = np.load(uploaded_file)
+        #image_data = uploaded_file.getvalue()
+        #st.image(image_data)
+        #image = Image.open(io.BytesIO(image_data))
+        #image = np.array(image)
+        img = image.astype(np.float32) / 255.0
+        for i, m in enumerate(config.IMAGENET_MEAN):
+            img[..., i] = (img[..., i] - m) / config.IMAGENET_STD[i]
+        image_tensor = torch.from_numpy(img).permute(2, 0, 1).float().unsqueeze(0)
+        return image_tensor
+    else:
+        return
 
 
 def predict(model, image_tensor, model_type=ModelType.TRANSUNET, device="cpu"):
@@ -136,30 +137,31 @@ def colorize(mask):
 
 def visualize_prediction(image, pred_mask, save_path=None):
     """Отображает и сохраняет визуализацию: 5 изображений + текстовый отчёт"""
-    fig = plt.figure(figsize=(22, 12))
+    #fig = plt.figure(figsize=(22, 12))
+    fig, axes = plt.subplots(1, 4, figsize=(22, 12))
 
     # Верхний ряд
-    ax1 = fig.add_subplot(2, 3, 1)
-    ax1.imshow(image)
-    ax1.set_title("Original Image", fontsize=14, fontweight='bold')
-    ax1.axis('off')
+    #axes[0] = fig.add_subplot(1, 2)
+    axes[0].imshow(image)
+    axes[0].set_title("Original Image", fontsize=14, fontweight='bold')
+    axes[0].axis('off')
 
-    ax3 = fig.add_subplot(2, 3, 3)
-    ax3.imshow(image)
-    ax3.imshow(colorize(pred_mask), alpha=0.5)
-    ax3.set_title("Prediction (overlay)", fontsize=14, fontweight='bold')
-    ax3.axis('off')
+    #axes[1] = fig.add_subplot(2, 2, 3)
+    axes[1].imshow(image)
+    axes[1].imshow(colorize(pred_mask), alpha=0.5)
+    axes[1].set_title("Prediction (overlay)", fontsize=14, fontweight='bold')
+    axes[1].axis('off')
 
-    ax5 = fig.add_subplot(2, 3, 6)
-    ax5.imshow(colorize(pred_mask))
-    ax5.set_title("Predicted Mask", fontsize=14, fontweight='bold')
-    ax5.axis('off')
+    #ax5 = fig.add_subplot(2, 2, 6)
+    axes[2].imshow(colorize(pred_mask))
+    axes[2].set_title("Predicted Mask", fontsize=14, fontweight='bold')
+    axes[2].axis('off')
 
     # Описание
-    ax_desc = fig.add_subplot(2, 3, 4)
-    ax_desc.axis('off')
-    ax_desc.set_xlim(0, 10)
-    ax_desc.set_ylim(0, 10)
+    #ax_desc = fig.add_subplot(2, 2, 4)
+    axes[3].axis('off')
+    axes[3].set_xlim(0, 10)
+    axes[3].set_ylim(0, 10)
 
     pred_classes = set(np.unique(pred_mask)) - {0}
     found = pred_classes
@@ -180,7 +182,7 @@ def visualize_prediction(image, pred_mask, save_path=None):
     lines.append("")
 
     text = "\n".join(lines)
-    ax_desc.text(2.0, 9.5,
+    axes[3].text(2.0, 9.5,
                  text,
                  fontsize=15,
                  verticalalignment='top',
@@ -193,41 +195,34 @@ def visualize_prediction(image, pred_mask, save_path=None):
                  )
 
     plt.tight_layout()
-    if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight')
-        print(f"Saved to: {save_path}")
-        plt.close(fig)
-    else:
-        plt.show()
+    return fig
+    # if save_path:
+    #     plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    #     print(f"Saved to: {save_path}")
+    #     plt.close(fig)
+    # else:
+    #     plt.show()
 
 
 def main():
     # === Настройки ===
     MODEL_PATH = "D:/TransUnet_Fold1_0,3027.pth"
-    TEST_CSV = "D:/aspirantura3/aspirantura/PROF/npy_article_fold/train_article_fold_1.csv"
-
-    IMAGE_DIR = "D:/aspirantura3/aspirantura/PROF/npy_article_fold/fold_1/images"
-
     DEVICE = torch.device("cpu")
-
-    MODEL_TYPE = ModelType.DEEPLAB
-
+    MODEL_TYPE = ModelType.TRANSUNET
     # === Загрузка ===
     model = load_model(MODEL_PATH, MODEL_TYPE, DEVICE)
-    df = pd.read_csv(TEST_CSV)
-    print(f"Samples: {len(df)}")
-
     # === Выбор снимка ===
-    sample_idx = 17 # Указать индекс [0; len(df) - 1]
-
-    image_tensor, img_name = load_sample(df, sample_idx, IMAGE_DIR)
-    print(f"Loaded: {img_name}")
-
+    st.title('Классификация изображений глазного дна')
+    image_tensor = load_image()
+    result = st.button('Распознать изображение')
+    if result:
     # === Предсказание ===
-    pred_mask, img_vis = predict(model, image_tensor, MODEL_TYPE, DEVICE)
+        pred_mask, img_vis = predict(model, image_tensor, MODEL_TYPE, DEVICE)
 
-    # === Визуализация ===
-    visualize_prediction(img_vis, pred_mask, save_path=f"vis_{sample_idx}.png")
+        # === Визуализация ===
+        fig = visualize_prediction(img_vis, pred_mask, save_path=f"vis2.png")
+        st.write("Complete?")
+        st.pyplot(fig)
 
 
 if __name__ == "__main__":
