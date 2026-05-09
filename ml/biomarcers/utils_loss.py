@@ -46,3 +46,58 @@ class TverskyLoss(nn.Module):
 
         loss = 1.0 - tversky
         return loss.mean()
+
+
+class FocalLoss(nn.Module):
+    """
+    Focal Loss: динамически увеличивает вес ошибок на трудно-классифицируемых пикселях
+    """
+    def __init__(self, gamma=2.0, smooth=1e-6, ignore_index=config.IGNORE_INDEX):
+        super().__init__()
+        self.gamma = gamma
+        self.smooth = smooth
+        self.ignore_index = ignore_index
+
+    def forward(self, logits, targets):
+        """
+        logits: [B, C, H, W] — сырые выходы модели
+        targets: [B, H, W] — метки классов
+        """
+        num_classes = logits.shape[1]
+
+        # Вероятности классов
+        probs = torch.softmax(logits, dim=1)  # [B, C, H, W]
+
+        # Маска валидных пикселей (исключаем ignore_index)
+        valid_mask = (targets != self.ignore_index)  # [B, H, W]
+
+        # One-hot метки
+        with torch.no_grad():
+            targets_onehot = F.one_hot(
+                targets.clamp(0, num_classes - 1),
+                num_classes
+            ).permute(0, 3, 1, 2).float()  # [B, C, H, W]
+            targets_onehot = targets_onehot * valid_mask.unsqueeze(1).float()
+
+        # Применяем маску к вероятностям
+        probs = probs * valid_mask.unsqueeze(1).float()
+
+        # Собираем вероятности истинного класса: pt [B, 1, H, W]
+        pt = (probs * targets_onehot).sum(dim=1, keepdim=True)  # [B, 1, H, W]
+
+        focal_weight = (1.0 - pt) ** self.gamma
+
+        # Focal loss для всех пикселей
+        focal_loss = -focal_weight * torch.log(pt + self.smooth)  # [B, 1, H, W]
+
+        # Усредняем только по foreground (классы != 0) и валидным пикселям
+        foreground_mask = (targets != 0) & valid_mask  # [B, H, W]
+
+        if foreground_mask.sum() > 0:
+            # Выбираем пиксели foreground и усредняем
+            loss = focal_loss.squeeze(1)[foreground_mask].mean()
+        else:
+            # Если в батче нет foreground, возвращаем 0
+            loss = focal_loss.mean() * 0.0
+
+        return loss
