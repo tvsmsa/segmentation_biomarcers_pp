@@ -1,15 +1,10 @@
-import os
 import torch
-import torch.nn.functional as F
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 
 from ml.biomarcers.config import Config
 from ml.biomarcers.model_transunet import TransUNet
 import streamlit as st
-from PIL import Image
-import io
 
 from transformers import SegformerForSemanticSegmentation
 
@@ -87,10 +82,6 @@ def load_image():
     uploaded_file = st.file_uploader(label='Выберите изображение для распознавания')
     if uploaded_file is not None:
         image = np.load(uploaded_file)
-        #image_data = uploaded_file.getvalue()
-        #st.image(image_data)
-        #image = Image.open(io.BytesIO(image_data))
-        #image = np.array(image)
         img = image.astype(np.float32) / 255.0
         for i, m in enumerate(config.IMAGENET_MEAN):
             img[..., i] = (img[..., i] - m) / config.IMAGENET_STD[i]
@@ -136,29 +127,24 @@ def colorize(mask):
 
 
 def visualize_prediction(image, pred_mask, save_path=None):
-    """Отображает и сохраняет визуализацию: 5 изображений + текстовый отчёт"""
-    #fig = plt.figure(figsize=(22, 12))
+    """Отображает и сохраняет визуализацию: 3 изображения + текстовый отчёт"""
     fig, axes = plt.subplots(1, 4, figsize=(22, 12))
 
     # Верхний ряд
-    #axes[0] = fig.add_subplot(1, 2)
     axes[0].imshow(image)
     axes[0].set_title("Original Image", fontsize=14, fontweight='bold')
     axes[0].axis('off')
 
-    #axes[1] = fig.add_subplot(2, 2, 3)
     axes[1].imshow(image)
     axes[1].imshow(colorize(pred_mask), alpha=0.5)
     axes[1].set_title("Prediction (overlay)", fontsize=14, fontweight='bold')
     axes[1].axis('off')
 
-    #ax5 = fig.add_subplot(2, 2, 6)
     axes[2].imshow(colorize(pred_mask))
     axes[2].set_title("Predicted Mask", fontsize=14, fontweight='bold')
     axes[2].axis('off')
 
     # Описание
-    #ax_desc = fig.add_subplot(2, 2, 4)
     axes[3].axis('off')
     axes[3].set_xlim(0, 10)
     axes[3].set_ylim(0, 10)
@@ -196,12 +182,6 @@ def visualize_prediction(image, pred_mask, save_path=None):
 
     plt.tight_layout()
     return fig
-    # if save_path:
-    #     plt.savefig(save_path, dpi=150, bbox_inches='tight')
-    #     print(f"Saved to: {save_path}")
-    #     plt.close(fig)
-    # else:
-    #     plt.show()
 
 
 def main():
