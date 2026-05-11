@@ -128,7 +128,7 @@ def colorize(mask):
 
 def visualize_prediction(image, pred_mask, save_path=None):
     """Отображает и сохраняет визуализацию: 3 изображения + текстовый отчёт"""
-    fig, axes = plt.subplots(1, 4, figsize=(22, 12))
+    fig, axes = plt.subplots(1, 3, figsize=(18, 12))
 
     # Верхний ряд
     axes[0].imshow(image)
@@ -144,20 +144,13 @@ def visualize_prediction(image, pred_mask, save_path=None):
     axes[2].set_title("Predicted Mask", fontsize=14, fontweight='bold')
     axes[2].axis('off')
 
-    # Описание
-    axes[3].axis('off')
-    axes[3].set_xlim(0, 10)
-    axes[3].set_ylim(0, 10)
-
     pred_classes = set(np.unique(pred_mask)) - {0}
     found = pred_classes
-    #missed = gt_classes - pred_classes
-    #extra = pred_classes - gt_classes
 
-    lines = [f" Pred classes: {len(pred_classes)}", ""]
+    lines = [f" Pred classes/Предсказано классов: {len(pred_classes)}", ""]
 
     if found:
-        lines.append(f"[FOUND] ({len(found)}):")
+        lines.append(f"FOUND/НАЙДЕНО ({len(found)}):")
         for cls in sorted(found):
             pred_px = (pred_mask == cls).sum()
             lines.append(f"  - {ID_TO_CLASS.get(cls, cls)}")
@@ -168,20 +161,9 @@ def visualize_prediction(image, pred_mask, save_path=None):
     lines.append("")
 
     text = "\n".join(lines)
-    axes[3].text(2.0, 9.5,
-                 text,
-                 fontsize=15,
-                 verticalalignment='top',
-                 fontfamily='monospace',
-                 color='black',
-                 bbox=dict(boxstyle='round',
-                           facecolor='lightgrey',
-                           alpha=0.9,
-                           pad=0.8)
-                 )
 
     plt.tight_layout()
-    return fig
+    return fig, text
 
 
 def main():
@@ -200,9 +182,9 @@ def main():
         pred_mask, img_vis = predict(model, image_tensor, MODEL_TYPE, DEVICE)
 
         # === Визуализация ===
-        fig = visualize_prediction(img_vis, pred_mask, save_path=f"vis2.png")
-        st.write("Предсказание закончено")
+        fig, text = visualize_prediction(img_vis, pred_mask, save_path=f"vis2.png")
         st.pyplot(fig)
+        st.write(text)
 
 
 if __name__ == "__main__":
