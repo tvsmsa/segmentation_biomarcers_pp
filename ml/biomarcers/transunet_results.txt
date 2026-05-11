@@ -29,3 +29,29 @@ Validation Fold 3 Epoch 5: 100%|████████████████
 Validation Dice: 0.1015
 Best model updated! Dice: 0.1015
 Training finished. Best Dice: 0.1015
+
+Metrics for Deeplab-2
+================================================================================
+Class                          IoU      Dice     Precision  Recall    
+------------------------------ -------- -------- ---------- ----------
+drusen                         0.3397   0.5071     0.5849     0.4476    
+edema                          0.3693   0.5394     0.5444     0.5346    
+epiretinal_fibrosis            0.6137   0.7606     0.7017     0.8303    
+fibrosis                       0.3292   0.4953     0.6214     0.4117    
+geographic_atrophy             0.7164   0.8348     0.8118     0.8591    
+hard_exudates                  0.5827   0.7363     0.7252     0.7478    
+hemorrhages                    0.5447   0.7052     0.7275     0.6843    
+laser_coagulates               0.5414   0.7024     0.6094     0.8290    
+macular_hole                   0.7264   0.8415     0.7454     0.9660    
+microaneurysms                 0.1620   0.2789     0.3135     0.2511    
+neovascularization             0.5860   0.7389     0.6743     0.8173    
+soft_exudates                  0.3201   0.4850     0.7148     0.3670    
+subretinal_hemorrhage          0.4989   0.6657     0.6454     0.6873    
+venous_anomalies               0.1284   0.2276     0.3190     0.1770    
+------------------------------ -------- -------- ---------- ----------
+MEAN                           0.4613   0.6085  
+================================================================================
+
+Model: Deeplab-2
+0.6084896640532546
+Results saved to: test_results/Deeplab-2_test_results.csv
