@@ -165,17 +165,19 @@ def train_fold(train_folds, val_fold, patience=5):
 if __name__ == "__main__":
     torch.multiprocessing.set_start_method("spawn", force=True)
 
-    FOLD = 3
+    # Задаём фолд вручную
+    FOLD = 1
 
+    # Определяем train и val фолды
     if FOLD == 1:
-        train_folds = [2, 3]
-        val_fold = 1
-    elif FOLD == 2:
         train_folds = [1, 3]
         val_fold = 2
-    elif FOLD == 3:
+    elif FOLD == 2:
         train_folds = [1, 2]
         val_fold = 3
+    elif FOLD == 3:
+        train_folds = [2, 3]
+        val_fold = 1
     else:
         raise ValueError("FOLD должен быть 1, 2 или 3")
 
