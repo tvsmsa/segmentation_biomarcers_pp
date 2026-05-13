@@ -10,7 +10,7 @@ from ml.biomarcers.dataloader import ImageMaskDataset
 from ml.biomarcers.utils_loss import TverskyLoss
 from ml.biomarcers.model_transunet import TransUNet
 from ml.biomarcers.metrics import dice_score_fast
-#import segmentation_models_pytorch as smp
+import segmentation_models_pytorch as smp
 
 config = TransUNetConfig()
 torch.multiprocessing.set_start_method("spawn", force=True)
