@@ -12,7 +12,7 @@ from ml.biomarcers.config import Config
 from ml.biomarcers.dataloader import ImageMaskDataset
 from ml.biomarcers.utils_loss import TverskyLoss
 from ml.biomarcers.metrics import dice_score_fast
-import segmentation_models_pytorch as smp
+#import segmentation_models_pytorch as smp
 
 config = Config()
 torch.multiprocessing.set_start_method("spawn", force=True)
@@ -86,11 +86,11 @@ def train_fold(train_folds, val_fold, patience=5):
         ignore_index=config.IGNORE_INDEX).to(config.DEVICE)
     tversky_loss = TverskyLoss(
         ignore_index=config.IGNORE_INDEX).to(config.DEVICE)
-    dice_loss = smp.losses.DiceLoss(mode='multiclass',ignore_index=config.IGNORE_INDEX)
+    #dice_loss = smp.losses.DiceLoss(mode='multiclass',ignore_index=config.IGNORE_INDEX)
 
     def combined_loss(logits, targets):
-        #return ce_loss(logits, targets) + 2.0 * tversky_loss(logits, targets)
-        return ce_loss(logits, targets) + 2.0 * dice_loss(logits, targets)
+        return ce_loss(logits, targets) + 2.0 * tversky_loss(logits, targets)
+        #return ce_loss(logits, targets) + 2.0 * dice_loss(logits, targets)
 
     scaler = torch.cuda.amp.GradScaler()
 
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     torch.multiprocessing.set_start_method("spawn", force=True)
 
     # Задаём фолд вручную
-    FOLD = 1
+    FOLD = 2
 
     # Определяем train и val фолды
     if FOLD == 1:
