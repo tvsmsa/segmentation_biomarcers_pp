@@ -98,6 +98,6 @@ class FocalLoss(nn.Module):
             loss = focal_loss.squeeze(1)[foreground_mask].mean()
         else:
             # Если в батче нет foreground, возвращаем 0
-            loss = focal_loss.mean() * 0.0
+            loss = focal_loss.mean() * 0.0 + 0.0 * logits.mean()
 
         return loss
