@@ -97,7 +97,7 @@ class FocalLoss(nn.Module):
             # Выбираем пиксели foreground и усредняем
             loss = focal_loss.squeeze(1)[foreground_mask].mean()
         else:
-            # Если в батче нет foreground, возвращаем 0
-            loss = focal_loss.mean() * 0.0 + 0.0 * logits.mean()
+            # Если в батче нет foreground, возвращаем 0, но сохраняем граф вычислений
+            loss = 0.0 * logits.sum() + 0.0 * focal_loss.sum()
 
         return loss
