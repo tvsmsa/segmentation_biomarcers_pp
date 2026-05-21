@@ -8,7 +8,7 @@ config = Config()
 
 
 class TverskyLoss(nn.Module):
-    def __init__(self, alpha=0.7, beta=0.3, smooth=1e-6, ignore_index=config.IGNORE_INDEX):
+    def __init__(self, alpha=0.8, beta=0.2, smooth=1e-6, ignore_index=config.IGNORE_INDEX):
         super().__init__()
         self.alpha = alpha
         self.beta = beta
