@@ -24,13 +24,14 @@ torch.multiprocessing.set_start_method("spawn", force=True)
 
 def train_fold(train_folds, val_fold, patience=5):
     # Загружаем CSV
-    train_dfs = [pd.read_csv( f"D:\\aspirantura3\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{f}.csv") for f in train_folds]
+    # train_dfs = [pd.read_csv( f"D:\\aspirantura3\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{f}.csv") for f in train_folds]
     # Для kaggle
-    #train_dfs = [pd.read_csv( f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{f}.csv") for f in train_folds]
+    train_dfs = [pd.read_csv( f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{f}.csv") for f in train_folds]
     df_train = pd.concat(train_dfs).reset_index(drop=True)
-    df_val = pd.read_csv( f"D:\\aspirantura3\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{val_fold}.csv")
+
+    # df_val = pd.read_csv( f"D:\\aspirantura3\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{val_fold}.csv")
     # Для kaggle
-    #df_val = pd.read_csv( f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{val_fold}.csv")
+    df_val = pd.read_csv( f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{val_fold}.csv")
 
     # Datasets
     train_dataset = ImageMaskDataset(df_train, augment_prob=0.5)
@@ -63,15 +64,15 @@ def train_fold(train_folds, val_fold, patience=5):
     )
     ce_loss = torch.nn.CrossEntropyLoss(ignore_index=config.IGNORE_INDEX).to(config.DEVICE)
 
-    tversky_loss = TverskyLoss(ignore_index=config.IGNORE_INDEX).to(config.DEVICE)
-
-    def combined_loss(logits, targets):
-        return ce_loss(logits, targets) + 2.0 * tversky_loss(logits, targets)
-
-    # focal_loss = FocalLoss(gamma=2.0).to(config.DEVICE)
+    # tversky_loss = TverskyLoss(ignore_index=config.IGNORE_INDEX).to(config.DEVICE)
     #
     # def combined_loss(logits, targets):
-    #     return ce_loss(logits, targets) + 2.0 * focal_loss(logits, targets)
+    #     return ce_loss(logits, targets) + 2.0 * tversky_loss(logits, targets)
+
+    focal_loss = FocalLoss(gamma=2.0).to(config.DEVICE)
+
+    def combined_loss(logits, targets):
+        return ce_loss(logits, targets) + 2.0 * focal_loss(logits, targets)
 
     scaler = torch.cuda.amp.GradScaler()
 
