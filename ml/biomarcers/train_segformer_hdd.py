@@ -86,10 +86,16 @@ def train_fold(train_folds, val_fold, patience=5):
     # def combined_loss(logits, targets):
     #     return ce_loss(logits, targets) + 2.0 * tversky_loss(logits, targets)
 
-    focal_loss = FocalLoss(gamma=2.0).to(config.DEVICE)
+    focal_loss_fn = FocalLoss(gamma=2.0).to(config.DEVICE)
 
     def combined_loss(logits, targets):
-        return ce_loss(logits, targets) + 2.0 * focal_loss(logits, targets)
+        ce = ce_loss(logits, targets)
+        fl = focal_loss_fn(logits, targets)
+        # Если FocalLoss вернул 0 (без графа), добавляем фиктивный член
+        if fl.requires_grad:
+            return ce + 2.0 * fl
+        else:
+            return ce + 0.0 * logits.sum()
 
     scaler = torch.amp.GradScaler('cuda')
 
