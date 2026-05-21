@@ -91,7 +91,7 @@ def train_fold(train_folds, val_fold, patience=5):
     def combined_loss(logits, targets):
         return ce_loss(logits, targets) + 2.0 * focal_loss(logits, targets)
 
-    scaler = torch.cuda.amp.GradScaler()
+    scaler = torch.amp.GradScaler('cuda')
 
     best_dice = 0.0
     epochs_no_improve = 0
@@ -116,7 +116,7 @@ def train_fold(train_folds, val_fold, patience=5):
             if epoch == 0 and i == 0:
                 print("Unique values in mask:", torch.unique(masks))
 
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast('cuda'):
                 logits = model(pixel_values=imgs).logits
                 logits = F.interpolate(
                     logits, masks.shape[-2:], mode="bilinear", align_corners=False)
