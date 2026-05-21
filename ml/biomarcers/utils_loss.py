@@ -48,56 +48,56 @@ class TverskyLoss(nn.Module):
         return loss.mean()
 
 
-class FocalLoss(nn.Module):
+
+class CombinedLoss(nn.Module):
     """
-    Focal Loss: динамически увеличивает вес ошибок на трудно-классифицируемых пикселях
+    Комбинированная функция потерь: CrossEntropy + Focal Loss.
+    Гарантированно сохраняет граф вычислений.
     """
-    def __init__(self, gamma=2.0, smooth=1e-6, ignore_index=config.IGNORE_INDEX):
+    def __init__(self, gamma=2.0, focal_weight=2.0, smooth=1e-6, ignore_index=-100):
         super().__init__()
         self.gamma = gamma
+        self.focal_weight = focal_weight
         self.smooth = smooth
         self.ignore_index = ignore_index
+        self.ce_loss = nn.CrossEntropyLoss(ignore_index=ignore_index, reduction='mean')
 
     def forward(self, logits, targets):
         """
-        logits: [B, C, H, W] — сырые выходы модели
+        logits: [B, C, H, W] — выходы модели
         targets: [B, H, W] — метки классов
         """
-        num_classes = logits.shape[1]
+        B, C, H, W = logits.shape
 
-        # Вероятности классов
-        probs = torch.softmax(logits, dim=1)  # [B, C, H, W]
+        # 1. CrossEntropy (всегда работает корректно)
+        ce = self.ce_loss(logits, targets)
 
-        # Маска валидных пикселей (исключаем ignore_index)
-        valid_mask = (targets != self.ignore_index)  # [B, H, W]
+        # 2. Focal Loss (упрощённый, всегда сохраняет граф)
+        probs = F.softmax(logits, dim=1)  # [B, C, H, W]
 
-        # One-hot метки
-        with torch.no_grad():
-            targets_onehot = F.one_hot(
-                targets.clamp(0, num_classes - 1),
-                num_classes
-            ).permute(0, 3, 1, 2).float()  # [B, C, H, W]
-            targets_onehot = targets_onehot * valid_mask.unsqueeze(1).float()
+        # Собираем вероятности правильных классов
+        # targets: [B, H, W] → [B, 1, H, W] → [B*H*W]
+        targets_flat = targets.reshape(-1)  # [B*H*W]
+        probs_flat = probs.permute(0, 2, 3, 1).reshape(-1, C)  # [B*H*W, C]
 
-        # Применяем маску к вероятностям
-        probs = probs * valid_mask.unsqueeze(1).float()
+        # Индексы валидных пикселей
+        valid_mask = (targets_flat != self.ignore_index)
 
-        # Собираем вероятности истинного класса: pt [B, 1, H, W]
-        pt = (probs * targets_onehot).sum(dim=1, keepdim=True)  # [B, 1, H, W]
+        if valid_mask.sum() == 0:
+            # Совсем нет валидных пикселей — rare case
+            return ce + 0.0 * logits.sum()
 
+        # Вероятности правильных классов только для валидных пикселей
+        pt = probs_flat[valid_mask, targets_flat[valid_mask]]  # [N_valid]
+
+        # Focal weight
         focal_weight = (1.0 - pt) ** self.gamma
 
-        # Focal loss для всех пикселей
-        focal_loss = -focal_weight * torch.log(pt + self.smooth)  # [B, 1, H, W]
+        # Focal loss: -weight * log(pt)
+        focal_loss = -focal_weight * torch.log(pt + self.smooth)
 
-        # Усредняем только по foreground (классы != 0) и валидным пикселям
-        foreground_mask = (targets != 0) & valid_mask  # [B, H, W]
+        # Усредняем
+        fl = focal_loss.mean()
 
-        if foreground_mask.sum() > 0:
-            # Выбираем пиксели foreground и усредняем
-            loss = focal_loss.squeeze(1)[foreground_mask].mean()
-        else:
-            # Если в батче нет foreground, возвращаем 0, но сохраняем граф вычислений
-            loss = 0.0 * logits.sum() + 0.0 * focal_loss.sum()
-
-        return loss
+        # Комбинируем
+        return ce + self.focal_weight * fl
