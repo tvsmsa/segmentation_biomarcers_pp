@@ -1,9 +1,0 @@
-pandas
-numpy
-torch
-opencv-python
-tqdm
-scikit-image
-scikit-learn
-transformers
-matplotlib

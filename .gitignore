@@ -217,3 +217,5 @@ ml/data/AV-Seg
 ml/biomarcers/data/
 xml_files/
 xml_info_files/
+tversky_visualization/
+dice_visualization/

@@ -167,21 +167,15 @@ def visualize_prediction(image, pred_mask, save_path=None):
 
 
 def main():
-    # === Настройки ===
-    MODEL_PATH = "D:/TransUnet_Fold1_0,3027.pth"
+    MODEL_PATH = "D:/datasets/dice_models/transunet_tversky/TransUnet_Fold1_0,3027.pth"
     DEVICE = torch.device("cpu")
     MODEL_TYPE = ModelType.TRANSUNET
-    # === Загрузка ===
     model = load_model(MODEL_PATH, MODEL_TYPE, DEVICE)
-    # === Выбор снимка ===
     st.title('Сегментация изображений глазного дна')
     image_tensor = load_image()
     result = st.button('Распознать изображение')
     if result:
-        # === Предсказание ===
         pred_mask, img_vis = predict(model, image_tensor, MODEL_TYPE, DEVICE)
-
-        # === Визуализация ===
         fig, text = visualize_prediction(img_vis, pred_mask, save_path=f"vis2.png")
         st.pyplot(fig)
         st.write(text)
