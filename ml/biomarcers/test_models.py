@@ -161,10 +161,10 @@ def main():
     Тестирование модели
     """
     
-    MODEL_PATH = "D:/datasets/dice_models/transunet_tversky/TransUnet_Fold3.pth"
+    MODEL_PATH = "D:/datasets/transunet_tversky_new_val_fold_1.pth"
     MODEL_TYPE = "transunet" 
-    TEST_CSV = "D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_3.csv" 
-    MODEL_NAME = "TransUNet_TVERSKY_3_Fold_3"
+    TEST_CSV = "D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_1.csv" 
+    MODEL_NAME = "TransUNet_NEW_TVERSKY_1_Fold_1"
     
     print(f"\nLoading data from: {TEST_CSV}")
     df_test = pd.read_csv(TEST_CSV)
