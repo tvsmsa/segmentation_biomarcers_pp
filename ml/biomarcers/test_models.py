@@ -164,7 +164,7 @@ def main():
     MODEL_PATH = "D:/datasets/dice_models/deeplab_tversky/fold_3.pth"
     MODEL_TYPE = "deeplab" 
     TEST_CSV = "D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_1.csv" 
-    MODEL_NAME = "Deeplab_TVERSKY_3_Fold_1"
+    MODEL_NAME = "Deeplab_TVERSKY_3_Fold_1_TEST_1"
     
     print(f"\nLoading data from: {TEST_CSV}")
     df_test = pd.read_csv(TEST_CSV)
