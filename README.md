@@ -3,35 +3,17 @@
 ## 1. Структура проекта и зоны ответственности
 
 ```
-segmentator/
+root/
 ├── ml/
 │   ├
-│   ├── biomarcers/                # Обучение SegFormer
+│   ├── biomarcers/
 │   ├   ├── train_segformer_hdd.py
-│   ├   ├── model.py
-│   ├   ├── dataset.py
+│   ├   ├── train_transuent_hdd.py
+│   ├   ├── train_deeplab_hdd.py
+│   ├   ├── model_transunet.py
+│   ├   ├── .py
 │   ├   ├── loss.py
 │   ├   └── config.py
-│   ├
-│   ├── segmentator/               # Основной ML-модуль (segmentation + skeleton)
-│   │   ├── model_segmentation.py
-│   │   ├── model_skeleton.py
-│   │   ├── training_segmentation.py
-│   │   ├── training_skeleton.py
-│   │   ├── testing_segmentation.py
-│   │   ├── testing_skeleton.py
-│   │   ├── inference.py
-│   │   ├── inference_core.py
-│   │   ├── calc_metrics.py
-│   │   ├── CI_metrics_segmentation.py
-│   │   ├── CI_metrics_skeleton.py
-│   │   └── test/                  # Unit-тесты
-│   │
-│   │── service/                   # Backend сервис для инференса
-│   │   └── backend/
-│   │       ├── main.py
-│   │       ├── app.py
-│   │       └── inference_core.py
 │
 ├── Dockerfile
 ├── docker-compose.yml
@@ -44,63 +26,39 @@ segmentator/
 # 2. Назначение модулей
 
 ##  `biomarcers/`
-Модуль обучения SegFormer.
+Модуль обучения SegFormer, TransUNet, Deeplab и вузализации результатов.
 
 Отвечает за:
 - загрузку датасета
 - конфигурацию обучения
 - определение loss-функций
-- обучение модели SegFormer
+- обучение моделей
 - сохранение чекпоинтов
 
 Используется для экспериментов и обучения.
 
 ---
 
-##  `segmentator/`
+###  model_transunet.py
+Реализация архитектуры TransUNet.
 
-###  model_segmentation.py
-Реализация архитектуры сегментационной модели.
+###  config_*.py
+Файлы конфигураций для моделей.
 
-###  model_skeleton.py
-Модель для предсказания скелета (skeletonization-aware).
+###  train_*.py
+Обучение моделей сегментации.
 
-###  training_segmentation.py
-Обучение модели сегментации.
+###  utils_loss.py
+Функции потерь.
 
-###  training_skeleton.py
-Обучение модели скелетизации.
+###  metrics.py
+Подсчет метрик.
 
-###  testing_*.py
-Запуск оценки модели на валидации/тесте.
+###  visualize.py
+Визуализация результатов, возвращается .png файл
 
-###  calc_metrics.py
-Подсчет метрик:
-- Dice
-- clDice
-- вспомогательные метрики
-
-###  CI_metrics_*.py
-Расчет доверительных интервалов (confidence intervals).
-
-###  inference.py / inference_core.py
-Логика инференса:
-- загрузка весов
-- preprocessing
-- forward pass
-- postprocessing
-
----
-
-##  `service/backend/`
-
-Backend для инференса.
-
-- `main.py` — точка входа
-- `app.py` — создание web-приложения
-- `inference_core.py` — загрузка модели и инференс
-
-Предназначен для деплоя модели как сервиса.
+###  visualize_streamlit.py
+Реализация визуализации результатов с помощью streamlit сервиса
 
 ---
 
@@ -108,47 +66,9 @@ Backend для инференса.
 
 ## SegFormer
 
-Используется в `biomarcers/`.
+## TransUNet
 
-- Transformer-based encoder
-- Lightweight decoder
-- Подходит для dense prediction
-- Хорошо работает на медицинских и структурных изображениях
-
-Преимущества:
-- Глобальный контекст
-- Лучшая обобщающая способность
-
----
-
-## CNN-based Segmentation Model
-
-В `segmentator/model_segmentation.py`.
-
-Тип:
-- Transformer-based encoder (SegFormer)
-- Lightweight convolutional decoder
-- Fully convolutional, без классических skip connections
-
-Назначение:
-- Бинарная сегментация объектов
-
----
-
-## Skeleton Model
-
-В `model_skeleton.py`.
-
-Тип:
-- Transformer-based encoder (SegFormer)
-- Lightweight convolutional decoder
-- Дифференцируемая морфология для выделения скелета (soft skeletonization)
-
-Назначение:
-- Предсказание центральной линии объектов
-- Используется для улучшения топологической корректности
-
----
+## DeeplabV3
 
 # 4. Параметры обучения
 
@@ -160,9 +80,7 @@ Backend для инференса.
 - Epochs: задаётся вручную
 - Loss functions:
   - Dice Loss
-  - BCE / BCEWithLogits - сегментация сосудов
   - CE + Tversky - биомаркеры
-  - clDice (для skeleton-aware оптимизации)
 
 Поддерживается:
 - k-fold cross validation
@@ -182,133 +100,29 @@ Dice = 2TP / (2TP + FP + FN)
 - Основная метрика для сегментации
 - Устойчива к дисбалансу классов
 
----
 
-## clDice
-
-Topology-aware метрика.
-
-Зачем:
-- Оценивает корректность скелета
-- Важна для тонких структур (сосуды, дороги и т.д.)
-- Наказывает за разрывы
-
----
-
-## Confidence Intervals (CI)
-
-Рассчитываются в:
-- CI_metrics_segmentation.py
-- CI_metrics_skeleton.py
-
-Зачем:
-- Оценка статистической устойчивости модели
-- Позволяет сравнивать модели корректно
-- Полезно для научных публикаций
-
----
-
-# 6. Тесты
-
-Расположены в:
-
-```
-
-segmentator/test/
-
-```
-
-## Unit-тесты моделей
-Проверяют:
-- корректность forward pass
-- размерности выходов
-- работу без ошибок
-
-
----
-
-
-## Тесты dataloader
-Проверяют:
-- корректную загрузку данных
-- соответствие размерностей
-- отсутствие падений на edge cases
-
----
-
-# 7. Как запускать
+# 6. Как запускать
 
 ## Обучение скелета
-
-```
-
-python segmentator/training_skeleton.py
-
-```
-
-## Обучение сегментации
-
-```
-
-python segmentator/training_segmentation.py
-
-```
 
 ---
 ## Обучение биомаркеров
 ```
-python biomarcers/train_segformer_hdd.py
+python biomarcers/train_*.py
 ```
 ---
 
-## Тестирование
+## Метрики
 
 ```
-
-python segmentator/testing_segmentation.py
-python segmentator/testing_skeleton.py
+python biomarcers/metrics.py
 
 ```
-
----
-
-## Запуск тестов
-
-```
-
-pytest segmentator/test/
-
-```
-
 ---
 
 ##  Запуск сервиса
 
 ```
-uvicorn service.backend.main:app
-streamlit run service.backend.app
+streamlit run ml.biomarcers.visualize_streamlit
 
 ```
-
-или через Docker:
-
-```
-
-docker-compose up --build
-
-```
- 
-Запускается на порту http://127.0.0.1:8501/
-
----
-
-# 8. Docker
-
-Проект контейнеризирован:
-
-- `Dockerfile` — сборка окружения
-- `docker-compose.yml` — запуск сервиса
-
-Позволяет:
-- воспроизводимо запускать модель
----

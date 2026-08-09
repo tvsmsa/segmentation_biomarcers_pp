@@ -10,13 +10,18 @@ from ml.biomarcers.model_transunet import TransUNet
 
 from transformers import SegformerForSemanticSegmentation
 
+import segmentation_models_pytorch as smp
+from ml.biomarcers.config_deeplab import DeepLabV3Config
+
 from enum import Enum
 
 class ModelType(Enum):
     TRANSUNET = "transunet"
     SEGFORMER = "segformer"
+    DEEPLAB = "deeplab"
 
 config = Config()
+deeplab_config = DeepLabV3Config()
 
 CLASS_COLORS = {
     1:  [1.0, 0.0, 0.0],
@@ -50,6 +55,15 @@ def load_model(model_path, model_type=ModelType.TRANSUNET, device="cpu"):
             "nvidia/segformer-b2-finetuned-ade-512-512",
             num_labels=config.NUM_CLASSES,
             ignore_mismatched_sizes=True
+        ).to(device)
+    elif model_type == ModelType.DEEPLAB:
+        model = smp.DeepLabV3Plus(
+            encoder_name="resnet50",
+            encoder_weights="imagenet",
+            classes=config.NUM_CLASSES,
+            encoder_output_stride=deeplab_config.OUTPUT_STRIDE,
+            decoder_atrous_rates=deeplab_config.ATROUS_RATES,
+            activation=None,
         ).to(device)
     else:
         raise ValueError(f"Unknown model type: {model_type}")
@@ -98,6 +112,8 @@ def predict(model, image_tensor, mask_tensor, model_type=ModelType.TRANSUNET, de
             outputs = model(pixel_values=image_tensor)
             logits = outputs.logits
         elif model_type == ModelType.TRANSUNET:
+            logits = model(image_tensor)
+        elif model_type == ModelType.DEEPLAB:
             logits = model(image_tensor)
         else:
             raise ValueError(f"Unknown model type: {model_type}")
@@ -223,7 +239,7 @@ def visualize_prediction(image, gt_mask, pred_mask, save_path=None):
 
 def main():
     # === Настройки ===
-    MODEL_PATH = "/Users/mamaevalex/aspirantura/PROF/models/segformer/fold3_0,3045.pth"
+    MODEL_PATH = "/Users/mamaevalex/aspirantura/PROF/models/deeplab/fold1_0,3247.pth"
     TEST_CSV = "/Users/mamaevalex/aspirantura/PROF/npy_article_fold/train_article_fold_1.csv"
 
     IMAGE_DIR = "/Users/mamaevalex/aspirantura/PROF/npy_article_fold/fold_1/images"
@@ -231,19 +247,21 @@ def main():
 
     DEVICE = torch.device("cpu")
 
+    MODEL_TYPE = ModelType.DEEPLAB
+
     # === Загрузка ===
-    model = load_model(MODEL_PATH, ModelType.SEGFORMER, DEVICE)
+    model = load_model(MODEL_PATH, MODEL_TYPE, DEVICE)
     df = pd.read_csv(TEST_CSV)
     print(f"Samples: {len(df)}")
 
     # === Выбор снимка ===
-    sample_idx = 16 # Указать индекс [0; len(df) - 1]
+    sample_idx = 17 # Указать индекс [0; len(df) - 1]
 
     image_tensor, mask_tensor, img_name = load_sample(df, sample_idx, IMAGE_DIR, MASK_DIR)
     print(f"Loaded: {img_name}")
 
     # === Предсказание ===
-    pred_mask, gt_mask, img_vis = predict(model, image_tensor, mask_tensor, ModelType.SEGFORMER, DEVICE)
+    pred_mask, gt_mask, img_vis = predict(model, image_tensor, mask_tensor, MODEL_TYPE, DEVICE)
 
     # === Визуализация ===
     visualize_prediction(img_vis, gt_mask, pred_mask, save_path=f"vis_{sample_idx}.png")
