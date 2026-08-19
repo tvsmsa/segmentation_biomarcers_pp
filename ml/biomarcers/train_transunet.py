@@ -58,7 +58,12 @@ def train_fold(train_folds, val_fold, patience=5):
     # Инициализация TransUNet
     model = TransUNet(img_dim=config.PATCH_SIZE, num_classes=config.NUM_CLASSES).to(config.DEVICE)
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-4)
+    optimizer = torch.optim.AdamW([
+        {'params': model.encoder.parameters(), 'lr': 1e-5},
+        {'params': model.decoder.parameters(), 'lr': 5e-4}, 
+    ],  weight_decay=1e-4
+        #model.parameters(), lr=1e-5, weight_decay=1e-5
+    )
     
     gradient_accumulation_steps = 2
     num_training_steps = (len(train_loader) // gradient_accumulation_steps) * config.EPOCHS
