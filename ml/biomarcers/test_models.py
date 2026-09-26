@@ -161,10 +161,10 @@ def main():
     Тестирование модели
     """
     
-    MODEL_PATH = "ml/biomarcers/checkpoint_epoch_30.pth"
-    MODEL_TYPE = "deeplab" 
-    TEST_CSV = "D:\\aspirantura3\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_1.csv" 
-    MODEL_NAME = "Deeplab-1"
+    MODEL_PATH = "D:/datasets/transunet_tversky_new_val_fold_1.pth"
+    MODEL_TYPE = "transunet" 
+    TEST_CSV = "D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_1.csv" 
+    MODEL_NAME = "TransUNet_NEW_TVERSKY_1_Fold_1"
     
     print(f"\nLoading data from: {TEST_CSV}")
     df_test = pd.read_csv(TEST_CSV)
