@@ -19,10 +19,10 @@ torch.multiprocessing.set_start_method("spawn", force=True)
 
 def train_fold(patience=5):
     # Загружаем CSV
-    images_dir_train = f"/kaggle/input/datasets/tvsmsa/idrid_patches/idrid_patches/images/training"
-    masks_dir_train = f"/kaggle/input/datasets/tvsmsa/idrid_patches/idrid_patches/masks/training"
-    images_dir_test = f"/kaggle/input/datasets/tvsmsa/idrid_patches/idrid_patches/images/testing"
-    masks_dir_test = f"/kaggle/input/datasets/tvsmsa/idrid_patches/idrid_patches/masks/testing"
+    images_dir_train = f"/kaggle/input/datasets/tvsmsa/idrid-patches/idrid_patches/images/training"
+    masks_dir_train = f"/kaggle/input/datasets/tvsmsa/idrid-patches/idrid_patches/masks/training"
+    images_dir_test = f"/kaggle/input/datasets/tvsmsa/idrid-patches/idrid_patches/images/testing"
+    masks_dir_test = f"/kaggle/input/datasets/tvsmsa/idrid-patches/idrid_patches/masks/testing"
     
     # images_dir_train = f"C:/Users/Acer/Desktop/python/idrid_patches/images/training"
     # masks_dir_train = f"C:/Users/Acer/Desktop/python/idrid_patches/masks/training"
