@@ -161,15 +161,17 @@ def main():
     Тестирование модели
     """
     
-    MODEL_PATH = "D:/datasets/transunet_tversky_new_val_fold_1.pth"
-    MODEL_TYPE = "transunet" 
-    TEST_CSV = "D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_1.csv" 
-    MODEL_NAME = "TransUNet_NEW_TVERSKY_1_Fold_1"
+    MODEL_PATH = "D:/models_idrid/fold_1.pth"
+    MODEL_TYPE = "deeplab" 
+    MODEL_NAME = "deeplab_idrid_fold_1"
     
-    print(f"\nLoading data from: {TEST_CSV}")
-    df_test = pd.read_csv(TEST_CSV)
+    #print(f"\nLoading data from: {TEST_CSV}")
+    #df_test = pd.read_csv(TEST_CSV)
+
+    images_dir_test = f"C:/Users/Acer/Desktop/python/idrid_patches/images/testing"
+    masks_dir_test = f"C:/Users/Acer/Desktop/python/idrid_patches/masks/testing"
     
-    test_dataset = ImageMaskDataset(df_test, augment_prob=0.0)
+    test_dataset = ImageMaskDataset(images_dir_test,masks_dir_test, augment_prob=0.0)
     test_loader = DataLoader(
         test_dataset, 
         batch_size=config.BATCH_SIZE,

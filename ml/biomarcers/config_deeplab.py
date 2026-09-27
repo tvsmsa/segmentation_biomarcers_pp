@@ -12,7 +12,7 @@ class DeepLabV3Config(SegformerConfig):
     #: размер батча
     BATCH_SIZE = 8
     #: количество эпох обучения
-    EPOCHS = 30
+    EPOCHS = 5
     #: на чем идет обучение
     DEVICE = "cuda"
     #: Классы
@@ -20,20 +20,10 @@ class DeepLabV3Config(SegformerConfig):
         "ERROR": (211, 255, 5),
         "OD": (250, 250, 55),
         "background": (0, 0, 0),
-        "drusen": (115, 71, 30),
-        "edema": (109, 230, 213),
-        "epiretinal_fibrosis": (88, 4, 46),
-        "fibrosis": (196, 67, 237),
-        "geographic_atrophy": (250, 189, 124),
-        "hard_exudates": (184, 61, 245),
-        "hemorrhages": (42, 125, 209),
-        "laser_coagulates": (70, 109, 209),
-        "macular_hole": (32, 218, 142),
         "microaneurysms": (250, 50, 83),
-        "neovascularization": (192, 245, 197),
+        "hemorrhages": (42, 125, 209),
+        "hard_exudates": (184, 61, 245),
         "soft_exudates": (61, 245, 61),
-        "subretinal_hemorrhage": (98, 243, 161),
-        "venous_anomalies": (94, 76, 209),
     }
 
     BACKGROUND_CLASSES = ["ERROR", "OD", "background"]
