@@ -163,13 +163,13 @@ def main():
     
     MODEL_PATH = "D:/models/deeplab_dice/deeplab_model_1.pth"
     MODEL_TYPE = "deeplab" 
-    MODEL_NAME = "deeplab_dice_idrid_1"
+    MODEL_NAME = "deeplab_dice_idrid_new2"
     
     #print(f"\nLoading data from: {TEST_CSV}")
     #df_test = pd.read_csv(TEST_CSV)
     #D:\idrid_combined\images
-    images_dir_test = f"D:/idrid_combined/images"
-    masks_dir_test = f"D:/idrid_combined/masks"
+    images_dir_test = "D:/idrid_final/image_patches"
+    masks_dir_test = "D:/idrid_final/mask_patches"
     
     test_dataset = ImageMaskDataset(images_dir_test,masks_dir_test, augment_prob=0.0)
     test_loader = DataLoader(

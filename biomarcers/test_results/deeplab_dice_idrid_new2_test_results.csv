@@ -1,0 +1,16 @@
+model,class_name,iou,dice,precision,recall
+deeplab_dice_idrid_new2,microaneurysms,0.0,0.0,0.0,0.0
+deeplab_dice_idrid_new2,hemorrhages,0.00041153168413052456,0.0008227247909422567,0.002072674647996277,0.0005132210437478274
+deeplab_dice_idrid_new2,hard_exudates,0.00013788616394363822,0.00027573430794128675,0.00015461803752944638,0.0012725745905808072
+deeplab_dice_idrid_new2,soft_exudates,0.0,0.0,0.0,0.0
+deeplab_dice_idrid_new2,drusen,0.0,0.0,0.0,0.0
+deeplab_dice_idrid_new2,edema,0.0,0.0,0.0,0.0
+deeplab_dice_idrid_new2,epiretinal_fibrosis,0.0,0.0,0.0,0.0
+deeplab_dice_idrid_new2,fibrosis,0.0,0.0,0.0,0.0
+deeplab_dice_idrid_new2,geographic_atrophy,0.0,0.0,0.0,0.0
+deeplab_dice_idrid_new2,laser_coagulates,0.0,0.0,0.0,0.0
+deeplab_dice_idrid_new2,macular_hole,0.0,0.0,0.0,0.0
+deeplab_dice_idrid_new2,neovascularization,0.0,0.0,0.0,0.0
+deeplab_dice_idrid_new2,subretinal_hemorrhage,0.0,0.0,0.0,0.0
+deeplab_dice_idrid_new2,venous_anomalies,0.0,0.0,0.0,0.0
+deeplab_dice_idrid_new2,MEAN,3.924413200529734e-05,7.84613642059674e-05,0.00015909233468040882,0.00012755683102347388
