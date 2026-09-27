@@ -17,15 +17,17 @@ config = DeepLabV3Config()
 torch.multiprocessing.set_start_method("spawn", force=True)
 
 
-def train_fold(train_folds, val_fold, patience=5):
+def train_fold(patience=5):
     # Загружаем CSV
-    train_dfs = [pd.read_csv( f"D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{f}.csv") for f in train_folds]
-    df_train = pd.concat(train_dfs).reset_index(drop=True)
-    df_val = pd.read_csv( f"D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{val_fold}.csv")
+    images_dir_train = f"D:/IDRiD_processed/images/training"
+    masks_dir_train = f"D:/IDRiD_processed/masks/training"
+    images_dir_test = f"D:/IDRiD_processed/images/testing"
+    masks_dir_test = f"D:/IDRiD_processed/masks/testing"
+
 
     # Datasets
-    train_dataset = ImageMaskDataset(df_train, augment_prob=0.5)
-    val_dataset = ImageMaskDataset(df_val, augment_prob=0.0)
+    train_dataset = ImageMaskDataset(images_dir_train,masks_dir_train, augment_prob=0.5)
+    val_dataset = ImageMaskDataset(images_dir_test,masks_dir_test, augment_prob=0.0)
 
     train_loader = DataLoader(train_dataset, batch_size=config.BATCH_SIZE,
                               shuffle=True, num_workers=8, pin_memory=True)
@@ -41,6 +43,10 @@ def train_fold(train_folds, val_fold, patience=5):
         decoder_atrous_rates=config.ATROUS_RATES,
         activation=None,
     ).to(config.DEVICE)
+    checkpoint = torch.load('D:/models/deeplab_tversky/fold_1.pth')
+    state_dict = checkpoint["model_state_dict"]
+    model.load_state_dict(state_dict)
+    model.eval()
 
     optimizer = torch.optim.AdamW([
         # Backbone: low LR
@@ -78,7 +84,7 @@ def train_fold(train_folds, val_fold, patience=5):
     epochs_no_improve = 0
 
     # Checkpoint path
-    checkpoint_dir = os.path.join(config.CHECKPOINT_DIR, f"fold_{val_fold}")
+    checkpoint_dir = os.path.join(config.CHECKPOINT_DIR, f"fold_1")
     os.makedirs(checkpoint_dir, exist_ok=True)
 
     for epoch in range(config.EPOCHS):
@@ -87,7 +93,7 @@ def train_fold(train_folds, val_fold, patience=5):
         start_time = time.time()
         loader_iter = tqdm(
             train_loader,
-            desc=f"Train Folds: {train_folds}, Val Fold: {val_fold} | Epoch {epoch+1}",
+            desc=f"Epoch {epoch+1}",
             unit="batch")
 
         optimizer.zero_grad()
@@ -121,7 +127,7 @@ def train_fold(train_folds, val_fold, patience=5):
         all_dice = 0.0
         count = 0
         val_iter = tqdm(
-            val_loader, desc=f"Validation Fold {val_fold} Epoch {epoch+1}", unit="batch")
+            val_loader, desc=f"Epoch {epoch+1}", unit="batch")
         for imgs, masks in val_iter:
             imgs = imgs.to(config.DEVICE)
             masks = masks.to(config.DEVICE)
@@ -169,23 +175,4 @@ def train_fold(train_folds, val_fold, patience=5):
 
 if __name__ == "__main__":
     torch.multiprocessing.set_start_method("spawn", force=True)
-
-    # Задаём фолд вручную
-    FOLD = 3
-
-    # Определяем train и val фолды
-    if FOLD == 1:
-        train_folds = [1, 3]
-        val_fold = 2
-    elif FOLD == 2:
-        train_folds = [1, 2]
-        val_fold = 3
-    elif FOLD == 3:
-        train_folds = [2, 3]
-        val_fold = 1
-    else:
-        raise ValueError("FOLD должен быть 1, 2 или 3")
-
-    print(f"TRAIN FOLDS: {train_folds}, VAL FOLD: {val_fold}")
-
-    train_fold(train_folds, val_fold, patience=5)
+    train_fold(patience=5)
