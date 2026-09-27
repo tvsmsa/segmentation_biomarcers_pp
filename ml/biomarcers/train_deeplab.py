@@ -49,10 +49,10 @@ def train_fold(patience=5):
         decoder_atrous_rates=config.ATROUS_RATES,
         activation=None,
     ).to(config.DEVICE)
-    #checkpoint = torch.load('D:/models/deeplab_tversky/fold_1.pth')
-    #state_dict = checkpoint["model_state_dict"]
-    #model.load_state_dict(state_dict)
-    #model.eval()
+    checkpoint = torch.load('/kaggle/input/models/tvsmsa/deeplab-fold-1/pytorch/default/1/fold_1.pth')
+    state_dict = checkpoint["model_state_dict"]
+    model.load_state_dict(state_dict)
+    model.eval()
 
     optimizer = torch.optim.AdamW([
         # Backbone: low LR
