@@ -161,15 +161,15 @@ def main():
     Тестирование модели
     """
     
-    MODEL_PATH = "D:/models_idrid/fold_1.pth"
+    MODEL_PATH = "D:/models/deeplab_dice/deeplab_model_1.pth"
     MODEL_TYPE = "deeplab" 
-    MODEL_NAME = "deeplab_idrid_fold_1"
+    MODEL_NAME = "deeplab_dice_idrid_1"
     
     #print(f"\nLoading data from: {TEST_CSV}")
     #df_test = pd.read_csv(TEST_CSV)
-
-    images_dir_test = f"C:/Users/Acer/Desktop/python/idrid_patches/images/testing"
-    masks_dir_test = f"C:/Users/Acer/Desktop/python/idrid_patches/masks/testing"
+    #D:\idrid_combined\images
+    images_dir_test = f"D:/idrid_combined/images"
+    masks_dir_test = f"D:/idrid_combined/masks"
     
     test_dataset = ImageMaskDataset(images_dir_test,masks_dir_test, augment_prob=0.0)
     test_loader = DataLoader(

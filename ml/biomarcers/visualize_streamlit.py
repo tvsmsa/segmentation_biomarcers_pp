@@ -126,7 +126,7 @@ def colorize(mask):
     return colored
 
 
-def visualize_prediction(image, pred_mask, save_path=None):
+def visualize_prediction(image, pred_mask):
     """Отображает и сохраняет визуализацию: 3 изображения + текстовый отчёт"""
     fig, axes = plt.subplots(1, 3, figsize=(18, 12))
 
@@ -167,16 +167,16 @@ def visualize_prediction(image, pred_mask, save_path=None):
 
 
 def main():
-    MODEL_PATH = "D:/datasets/dice_models/transunet_tversky/TransUnet_Fold1_0,3027.pth"
+    MODEL_PATH = "D:/models/deeplab_dice/deeplab_model_1.pth"
     DEVICE = torch.device("cpu")
-    MODEL_TYPE = ModelType.TRANSUNET
+    MODEL_TYPE = ModelType.DEEPLAB
     model = load_model(MODEL_PATH, MODEL_TYPE, DEVICE)
     st.title('Сегментация изображений глазного дна')
     image_tensor = load_image()
     result = st.button('Распознать изображение')
     if result:
         pred_mask, img_vis = predict(model, image_tensor, MODEL_TYPE, DEVICE)
-        fig, text = visualize_prediction(img_vis, pred_mask, save_path=f"vis2.png")
+        fig, text = visualize_prediction(img_vis, pred_mask)
         st.pyplot(fig)
         st.write(text)
 
