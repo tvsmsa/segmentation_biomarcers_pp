@@ -2,66 +2,19 @@ import os
 import torch
 import torch.nn.functional as F
 import pandas as pd
-import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from ml.biomarcers.config import Config
 from ml.biomarcers.dataloader import ImageMaskDataset
-from ml.biomarcers.model_transunet import TransUNet
-from transformers import SegformerForSemanticSegmentation
 from ml.biomarcers.metrics import print_class_metrics, compute_per_class_metrics
-import segmentation_models_pytorch as smp
 from ml.biomarcers.config_deeplab import DeepLabV3Config
 from pathlib import Path
+from ml.biomarcers.utils import load_model
 
 config = Config()
 deeplab_config = DeepLabV3Config()
 ID_TO_CLASS = {v: k for k, v in config.CLASS_TO_ID.items()}
 ID_TO_CLASS[0] = "background"
-
-@torch.no_grad()
-def load_model(model_path, model_type="transunet"):
-    """
-    Загружает модель из чекпоинта
-    """
-    if model_type == "transunet":
-        model = TransUNet(
-            img_dim=config.PATCH_SIZE,
-            num_classes=config.NUM_CLASSES
-        ).to(config.DEVICE)
-    elif model_type == "segformer":
-        model = SegformerForSemanticSegmentation.from_pretrained(
-            "nvidia/segformer-b2-finetuned-ade-512-512",
-            num_labels=config.NUM_CLASSES,
-            ignore_mismatched_sizes=True
-        ).to(config.DEVICE)
-    elif model_type == "deeplab":
-        model = smp.DeepLabV3Plus(
-            encoder_name="resnet50",
-            encoder_weights="imagenet",
-            classes=config.NUM_CLASSES,
-            encoder_output_stride=deeplab_config.OUTPUT_STRIDE,
-            decoder_atrous_rates=deeplab_config.ATROUS_RATES,
-            activation=None,
-        ).to(config.DEVICE)
-    else:
-        raise ValueError(f"Unknown model type: {model_type}")
-    
-    # Загружаем веса
-    checkpoint = torch.load(model_path, map_location=config.DEVICE)
-    
-    if 'model_state_dict' in checkpoint:
-        model.load_state_dict(checkpoint['model_state_dict'])
-        epoch = checkpoint.get('epoch', 'unknown')
-        val_dice = checkpoint.get('val_dice', 'unknown')
-        print(f"Loaded checkpoint from epoch {epoch}, val_dice: {val_dice}")
-    else:
-        model.load_state_dict(checkpoint)
-        print(f"Loaded model weights (no checkpoint metadata)")
-    
-    model.eval()
-    return model
-
 
 def test_model(model, test_loader, model_name="Model", save_results=True):
     """
@@ -176,7 +129,7 @@ def get_image_names(dataset) -> list[str]:
 
 def save_per_image_results(per_image_df: pd.DataFrame, model_name: str):
     """Сохраняет метрики по каждому изображению."""
-    results_dir = "biomarcers/test_results"
+    results_dir = "biomarcers/idrid_per_class"
     os.makedirs(results_dir, exist_ok=True)
     
     csv_path = os.path.join(results_dir, f"{model_name}_per_image.csv")
@@ -195,8 +148,8 @@ def main():
     MODEL_NAME = "deeplab_dice_idrid_2_2"
     
     #images_dir_test = "D:/idrid_blue/patches"
-    images_dir_test = "C:/Users/Acer/Desktop/python/idrid_blue/patches"
-    masks_dir_test  = "D:/idrid_combined/masks"
+    images_dir_test = "D:/idrid_final/image_patches"
+    masks_dir_test = "D:/idrid_final/mask_patches"
     #images_dir_test = "C:/Users/Acer/Desktop/python/IDRiD_processed/images/testing"
     #masks_dir_test  = "C:/Users/Acer/Desktop/python/IDRiD_processed/masks/testing"
     
