@@ -122,37 +122,52 @@ def save_test_results(metrics, id_to_class, model_name, mean_dice):
     """
     Сохранение метрик в CSV
     """
-    results_dir = "biomarcers/test_results"
+    results_dir = "biomarcers/idrid_results"
     os.makedirs(results_dir, exist_ok=True)
     
     rows = []
+    iou_vals, dice_vals, prec_vals, rec_vals = [], [], [], []
     for class_id, class_name in id_to_class.items():
         if class_id == 0:
             continue
-        row = {
+        n = metrics.get('count', {}).get(class_id, None)
+        if n == 0:
+            # класс отсутствует в датасете — не пишем и не учитываем в MEAN
+            continue
+
+        iou = metrics['iou'].get(class_id, 0.0)
+        dice = metrics['dice'].get(class_id, 0.0)
+        precision = metrics['precision'].get(class_id, 0.0)
+        recall = metrics['recall'].get(class_id, 0.0)
+
+        iou_vals.append(iou)
+        dice_vals.append(dice)
+        prec_vals.append(precision)
+        rec_vals.append(recall)
+        
+        rows.append({
             'model': model_name,
             'class_name': class_name,
-            'iou': metrics['iou'].get(class_id, 0.0),
-            'dice': metrics['dice'].get(class_id, 0.0),
-            'precision': metrics['precision'].get(class_id, 0.0),
-            'recall': metrics['recall'].get(class_id, 0.0)
-        }
-        rows.append(row)
+            'iou': iou,
+            'dice': dice,
+            'precision': precision,
+            'recall': recall,
+            'n_images': n,
+        })
     
-    # Средние значения
     rows.append({
         'model': model_name,
         'class_name': 'MEAN',
-        'iou': np.mean(list(metrics['iou'].values())),
-        'dice': mean_dice,
-        'precision': np.mean(list(metrics['precision'].values())),
-        'recall': np.mean(list(metrics['recall'].values()))
+        'iou': float(np.mean(iou_vals)) if iou_vals else 0.0,
+        'dice': float(np.mean(dice_vals)) if dice_vals else 0.0,
+        'precision': float(np.mean(prec_vals)) if prec_vals else 0.0,
+        'recall': float(np.mean(rec_vals)) if rec_vals else 0.0,
+        'n_images': '',
     })
-    
+
     df = pd.DataFrame(rows)
     csv_path = os.path.join(results_dir, f"{model_name}_test_results.csv")
     df.to_csv(csv_path, index=False)
-    
     return csv_path
 
 
@@ -161,9 +176,10 @@ def main():
     Тестирование модели
     """
     
-    MODEL_PATH = "D:/models/deeplab_dice/deeplab_model_1.pth"
-    MODEL_TYPE = "deeplab" 
-    MODEL_NAME = "deeplab_dice_idrid_new2"
+    MODEL_PATH = "D:/models/transunet_dice/transunet_dice_val_fold_3.pth"
+    MODEL_TYPE = "transunet" 
+    MODEL_NAME = "transunet_ced_idrid_fold_3"
+    #D:\models\segformer_tversky
     
     #print(f"\nLoading data from: {TEST_CSV}")
     #df_test = pd.read_csv(TEST_CSV)
@@ -185,7 +201,7 @@ def main():
     metrics, mean_dice = test_model(model, test_loader, MODEL_NAME, save_results=True)
     print(f"Model: {MODEL_NAME}")
     print(mean_dice)
-    print(f"Results saved to: test_results/{MODEL_NAME}_test_results.csv")
+    print(f"Results saved to: idrid_results/{MODEL_NAME}.csv")
 
 
 if __name__ == "__main__":
