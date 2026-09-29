@@ -18,9 +18,7 @@ ID_TO_CLASS[0] = "background"
 
 def test_model(model, test_loader, model_name="Model", save_results=True):
     """
-    Тестирует модель. Возвращает:
-      - агрегированные метрики
-      - метрики по каждому изображению (DataFrame)
+    Тестирует модель. Возвращает метрики по каждому изображению
     """
     model.eval()
     
@@ -45,14 +43,15 @@ def test_model(model, test_loader, model_name="Model", save_results=True):
                 outputs = model(pixel_values=imgs)
                 logits = outputs.logits
             else:
-                logits = model(imgs)
+                logits = model(imgs) # TransUNet
             
+            # Интерполяция
             if logits.shape[-2:] != masks.shape[-2:]:
                 logits = F.interpolate(
                     logits,
                     size=masks.shape[-2:],
                     mode="bilinear",
-                    align_corners=False,
+                    align_corners=False
                 )
             
             preds = logits.argmax(dim=1)  # (B, H, W)
@@ -77,15 +76,25 @@ def test_model(model, test_loader, model_name="Model", save_results=True):
                 global_idx += 1
                 
                 row = {"image": name}
+                valid_mask = (target_b != config.IGNORE_INDEX)
+
                 for cls_id, cls_name in ID_TO_CLASS.items():
                     if cls_id == 0:
                         continue
-                    row[f"iou_{cls_name}"]    = img_metrics["iou"].get(cls_id, float("nan"))
+
+                    target_has_cls = ((target_b == cls_id) & valid_mask).any().item()
+                    if not target_has_cls:
+                        # класса нет на изображении — не пишем метрики для него
+                        continue
+
+                    #row[f"iou_{cls_name}"]    = img_metrics["iou"].get(cls_id, float("nan"))
                     row[f"dice_{cls_name}"]   = img_metrics["dice"].get(cls_id, float("nan"))
-                    row[f"prec_{cls_name}"]   = img_metrics["precision"].get(cls_id, float("nan"))
+                    #row[f"prec_{cls_name}"]   = img_metrics["precision"].get(cls_id, float("nan"))
                     row[f"recall_{cls_name}"] = img_metrics["recall"].get(cls_id, float("nan"))
                 
-                per_image_rows.append(row)
+                if len(row) > 1:  # только "image" — значит ни одного класса нет
+                    per_image_rows.append(row)
+                #per_image_rows.append(row)
     
     # === Агрегированные метрики (как было) ===
     all_preds = torch.cat(all_preds, dim=0)
@@ -95,17 +104,15 @@ def test_model(model, test_loader, model_name="Model", save_results=True):
         all_preds,
         all_targets,
         num_classes=config.NUM_CLASSES,
-        ignore_index=config.IGNORE_INDEX,
+        ignore_index=config.IGNORE_INDEX
     )
-    
-    mean_dice = print_class_metrics(metrics, ID_TO_CLASS, title=f"Metrics for {model_name}")
     
     per_image_df = pd.DataFrame(per_image_rows)
     
     if save_results:
         save_per_image_results(per_image_df, model_name)
     
-    return metrics, mean_dice, per_image_df
+    return metrics, per_image_df
 
 def get_image_names(dataset) -> list[str]:
     """
@@ -128,7 +135,9 @@ def get_image_names(dataset) -> list[str]:
     return []
 
 def save_per_image_results(per_image_df: pd.DataFrame, model_name: str):
-    """Сохраняет метрики по каждому изображению."""
+    """
+    Сохранение метрик в CSV
+    """
     results_dir = "biomarcers/idrid_per_class"
     os.makedirs(results_dir, exist_ok=True)
     
@@ -143,9 +152,9 @@ def main():
     Тестирование модели
     """
 
-    MODEL_PATH = "D:/models/deeplab_dice/deeplab_model_2.pth"
+    MODEL_PATH = "D:/models/deeplab_tversky/fold_3.pth"
     MODEL_TYPE = "deeplab"
-    MODEL_NAME = "deeplab_dice_idrid_2_2"
+    MODEL_NAME = "deeplab_cet_idrid_3"
     
     #images_dir_test = "D:/idrid_blue/patches"
     images_dir_test = "D:/idrid_final/image_patches"
@@ -164,12 +173,11 @@ def main():
     
     model = load_model(MODEL_PATH, MODEL_TYPE)
     
-    metrics, mean_dice, per_image_df = test_model(
+    metrics, per_image_df = test_model(
         model, test_loader, MODEL_NAME, save_results=True
     )
     
     print(f"\nModel: {MODEL_NAME}")
-    print(f"Mean Dice: {mean_dice:.4f}")
     print(f"Per-image results saved: {len(per_image_df)} images")
 
 
