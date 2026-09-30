@@ -43,10 +43,10 @@ def load_model(model_path, model_type="transunet"):
         ).to(config.DEVICE)
     else:
         raise ValueError(f"Unknown model type: {model_type}")
-    
+
     # Загружаем веса
     checkpoint = torch.load(model_path, map_location=config.DEVICE)
-    
+
     if 'model_state_dict' in checkpoint:
         model.load_state_dict(checkpoint['model_state_dict'])
         epoch = checkpoint.get('epoch', 'unknown')
@@ -55,7 +55,7 @@ def load_model(model_path, model_type="transunet"):
     else:
         model.load_state_dict(checkpoint)
         print(f"Loaded model weights (no checkpoint metadata)")
-    
+
     model.eval()
     return model
 
@@ -65,37 +65,37 @@ def test_model(model, test_loader, model_name="Model", save_results=True):
     Тестирует модель
     """
     model.eval()
-    
+
     all_preds = []
     all_targets = []
-    
+
     test_iter = tqdm(test_loader, desc=f"Testing {model_name}", unit="batch")
-    
+
     with torch.no_grad():
         for imgs, masks in test_iter:
             imgs = imgs.to(config.DEVICE)
             masks = masks.to(config.DEVICE)
-            
+
             if hasattr(model, 'segformer'):
                 outputs = model(pixel_values=imgs)
                 logits = outputs.logits
-            else:      
+            else:
                 logits = model(imgs) # TransUNet
-            
+
             # Интерполяция
             if logits.shape[-2:] != masks.shape[-2:]:
                 logits = F.interpolate(
-                    logits, 
+                    logits,
                     size=masks.shape[-2:],
-                    mode="bilinear", 
+                    mode="bilinear",
                     align_corners=False
                 )
-            
+
             preds = logits.argmax(dim=1)  # (B, H, W)
-            
+
             all_preds.append(preds.cpu())
             all_targets.append(masks.cpu())
-    
+
     all_preds = torch.cat(all_preds, dim=0)
     all_targets = torch.cat(all_targets, dim=0)
 
@@ -105,16 +105,16 @@ def test_model(model, test_loader, model_name="Model", save_results=True):
         num_classes=config.NUM_CLASSES,
         ignore_index=config.IGNORE_INDEX
     )
-    
+
     id_to_class = {v: k for k, v in config.CLASS_TO_ID.items()}
     id_to_class[0] = "background"
-    
+
     # Выводим результаты
     mean_dice = print_class_metrics(metrics, id_to_class, title=f"Metrics for {model_name}")
-    
+
     if save_results:
         save_test_results(metrics, id_to_class, model_name, mean_dice)
-    
+
     return metrics, mean_dice
 
 
@@ -124,7 +124,7 @@ def save_test_results(metrics, id_to_class, model_name, mean_dice):
     """
     results_dir = "biomarcers/test_results"
     os.makedirs(results_dir, exist_ok=True)
-    
+
     rows = []
     for class_id, class_name in id_to_class.items():
         if class_id == 0:
@@ -138,7 +138,7 @@ def save_test_results(metrics, id_to_class, model_name, mean_dice):
             'recall': metrics['recall'].get(class_id, 0.0)
         }
         rows.append(row)
-    
+
     # Средние значения
     rows.append({
         'model': model_name,
@@ -148,11 +148,11 @@ def save_test_results(metrics, id_to_class, model_name, mean_dice):
         'precision': np.mean(list(metrics['precision'].values())),
         'recall': np.mean(list(metrics['recall'].values()))
     })
-    
+
     df = pd.DataFrame(rows)
     csv_path = os.path.join(results_dir, f"{model_name}_test_results.csv")
     df.to_csv(csv_path, index=False)
-    
+
     return csv_path
 
 
@@ -160,26 +160,26 @@ def main():
     """
     Тестирование модели
     """
-    
+
     MODEL_PATH = "D:/datasets/transunet_tversky_new_val_fold_1.pth"
-    MODEL_TYPE = "transunet" 
-    TEST_CSV = "D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_1.csv" 
+    MODEL_TYPE = "transunet"
+    TEST_CSV = "D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_1.csv"
     MODEL_NAME = "TransUNet_NEW_TVERSKY_1_Fold_1"
-    
+
     print(f"\nLoading data from: {TEST_CSV}")
     df_test = pd.read_csv(TEST_CSV)
-    
+
     test_dataset = ImageMaskDataset(df_test, augment_prob=0.0)
     test_loader = DataLoader(
-        test_dataset, 
+        test_dataset,
         batch_size=config.BATCH_SIZE,
-        shuffle=False, 
-        num_workers=4, 
+        shuffle=False,
+        num_workers=4,
         pin_memory=True
     )
-    
+
     model = load_model(MODEL_PATH, MODEL_TYPE)
-    
+
     metrics, mean_dice = test_model(model, test_loader, MODEL_NAME, save_results=True)
     print(f"Model: {MODEL_NAME}")
     print(mean_dice)
