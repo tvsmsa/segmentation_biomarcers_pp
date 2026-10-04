@@ -81,15 +81,10 @@ def load_model(model_path, model_type=ModelType.TRANSUNET, device="cpu"):
     return model
 
 
-def load_sample(df, idx, image_dir, mask_dir):
+def load_sample(image_dir, mask_dir):
     """Загружает один снимок и маску из датафрейма, возвращает тензоры."""
-    row = df.iloc[idx]
-
-    img_name = row['image'].split('\\')[-1]
-    mask_name = row['mask'].split('\\')[-1]
-
-    image = np.load(os.path.join(image_dir, img_name))
-    gt_mask = np.load(os.path.join(mask_dir, mask_name))
+    image = np.load(image_dir)
+    gt_mask = np.load(mask_dir)
 
     # Нормализация как в ImageMaskDataset
     img = image.astype(np.float32) / 255.0
@@ -99,6 +94,7 @@ def load_sample(df, idx, image_dir, mask_dir):
     image_tensor = torch.from_numpy(img).permute(2, 0, 1).float().unsqueeze(0)
     mask_tensor = torch.from_numpy(gt_mask).long().unsqueeze(0)
 
+    img_name = os.path.basename(image_dir)
     return image_tensor, mask_tensor, img_name
 
 
@@ -239,11 +235,9 @@ def visualize_prediction(image, gt_mask, pred_mask, save_path=None):
 
 def main():
     # === Настройки ===
-    MODEL_PATH = "/Users/mamaevalex/aspirantura/PROF/models/deeplab/fold1_0,3247.pth"
-    TEST_CSV = "/Users/mamaevalex/aspirantura/PROF/npy_article_fold/train_article_fold_1.csv"
-
-    IMAGE_DIR = "/Users/mamaevalex/aspirantura/PROF/npy_article_fold/fold_1/images"
-    MASK_DIR = "/Users/mamaevalex/aspirantura/PROF/npy_article_fold/fold_1/masks"
+    MODEL_PATH = "D:/models/deeplab_dice/deeplab_model_1.pth"
+    IMAGE_PATH = "D:/idrid_final/image_patches/IDRiD_02_1024_0.npy"
+    MASK_PATH  = "D:/idrid_final/mask_patches/IDRiD_02_1024_0.npy"
 
     DEVICE = torch.device("cpu")
 
@@ -251,20 +245,14 @@ def main():
 
     # === Загрузка ===
     model = load_model(MODEL_PATH, MODEL_TYPE, DEVICE)
-    df = pd.read_csv(TEST_CSV)
-    print(f"Samples: {len(df)}")
 
-    # === Выбор снимка ===
-    sample_idx = 17 # Указать индекс [0; len(df) - 1]
-
-    image_tensor, mask_tensor, img_name = load_sample(df, sample_idx, IMAGE_DIR, MASK_DIR)
-    print(f"Loaded: {img_name}")
+    image_tensor, mask_tensor, img_name = load_sample(IMAGE_PATH, MASK_PATH)
 
     # === Предсказание ===
     pred_mask, gt_mask, img_vis = predict(model, image_tensor, mask_tensor, MODEL_TYPE, DEVICE)
 
     # === Визуализация ===
-    visualize_prediction(img_vis, gt_mask, pred_mask, save_path=f"vis_{sample_idx}.png")
+    visualize_prediction(img_vis, gt_mask, pred_mask, save_path=f"vis_{os.path.splitext(img_name)[0]}.png")
 
 
 if __name__ == "__main__":
