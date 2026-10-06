@@ -76,7 +76,7 @@ def save_test_results(metrics, id_to_class, model_name, mean_dice):
     """
     Сохранение метрик в CSV
     """
-    results_dir = "biomarcers/idrid_results"
+    results_dir = "biomarcers/new_idrid_results"
     os.makedirs(results_dir, exist_ok=True)
     
     rows = []
@@ -130,16 +130,16 @@ def main():
     Тестирование модели
     """
     
-    MODEL_PATH = "D:/models/transunet_dice/transunet_dice_val_fold_3.pth"
-    MODEL_TYPE = "transunet" 
-    MODEL_NAME = "transunet_ced_idrid_fold_3"
+    MODEL_PATH = "D:/models/deeplab_dice/deeplab_model_3.pth"
+    MODEL_TYPE = "deeplab" 
+    MODEL_NAME = "deeplab_ced_fold_3_test_ds"
     #D:\models\segformer_tversky
     
     #print(f"\nLoading data from: {TEST_CSV}")
     #df_test = pd.read_csv(TEST_CSV)
     #D:\idrid_combined\images
     images_dir_test = "D:/idrid_final/image_patches"
-    masks_dir_test = "D:/idrid_final/mask_patches"
+    masks_dir_test = "D:/idrid_test/mask_patches"
     
     test_dataset = ImageMaskDataset(images_dir_test,masks_dir_test, augment_prob=0.0)
     test_loader = DataLoader(

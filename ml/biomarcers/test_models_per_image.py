@@ -138,12 +138,12 @@ def save_per_image_results(per_image_df: pd.DataFrame, model_name: str):
     """
     Сохранение метрик в CSV
     """
-    results_dir = "biomarcers/idrid_per_class"
+    results_dir = "biomarcers/new_idrid_per_class"
     os.makedirs(results_dir, exist_ok=True)
     
     csv_path = os.path.join(results_dir, f"{model_name}_per_image.csv")
     per_image_df.to_csv(csv_path, index=False)
-    print(f"✓ Per-image metrics saved to: {csv_path}")
+    print(f"Per-image metrics saved to: {csv_path}")
     
     return csv_path
 
@@ -152,13 +152,13 @@ def main():
     Тестирование модели
     """
 
-    MODEL_PATH = "D:/models/deeplab_dice/deeplab_model_3.pth"
-    MODEL_TYPE = "deeplab"
-    MODEL_NAME = "deeplab_ced_idrid_3"
+    MODEL_PATH = "D:/models/transunet_tversky/TransUnet_Fold3.pth"
+    MODEL_TYPE = "transunet"
+    MODEL_NAME = "transunet_cet_idrid_3"
     
     #images_dir_test = "D:/idrid_blue/patches"
     images_dir_test = "D:/idrid_final/image_patches"
-    masks_dir_test = "D:/idrid_final/mask_patches"
+    masks_dir_test = "D:/idrid_test/mask_patches"
     #images_dir_test = "C:/Users/Acer/Desktop/python/IDRiD_processed/images/testing"
     #masks_dir_test  = "C:/Users/Acer/Desktop/python/IDRiD_processed/masks/testing"
     

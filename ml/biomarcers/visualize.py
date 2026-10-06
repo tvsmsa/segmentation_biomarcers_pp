@@ -235,13 +235,13 @@ def visualize_prediction(image, gt_mask, pred_mask, save_path=None):
 
 def main():
     # === Настройки ===
-    MODEL_PATH = "D:/models/deeplab_dice/deeplab_model_1.pth"
-    IMAGE_PATH = "D:/idrid_final/image_patches/IDRiD_02_1024_0.npy"
-    MASK_PATH  = "D:/idrid_final/mask_patches/IDRiD_02_1024_0.npy"
+    MODEL_PATH = "D:/models/segformer_tversky/seg_tversk_val_fold_1.pth"
+    IMAGE_PATH = "D:/idrid_final/image_patches/IDRiD_09_512_1024.npy"
+    MASK_PATH  = "D:/idrid_test/mask_patches/IDRiD_09_512_1024.npy"
 
     DEVICE = torch.device("cpu")
 
-    MODEL_TYPE = ModelType.DEEPLAB
+    MODEL_TYPE = ModelType.SEGFORMER
 
     # === Загрузка ===
     model = load_model(MODEL_PATH, MODEL_TYPE, DEVICE)
