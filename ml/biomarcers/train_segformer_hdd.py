@@ -77,7 +77,7 @@ def train_fold(patience=5):
         num_labels=config.NUM_CLASSES,
         ignore_mismatched_sizes=True
     ).to(config.DEVICE)
-    checkpoint = torch.load('/kaggle/input/models/tvsmsa/segformer-1/pytorch/default/1//kaggle/input/models/tvsmsa/segformer-1/pytorch/default/1/seg_tversk_val_fold_1.pth.pth')
+    checkpoint = torch.load('/kaggle/input/models/tvsmsa/segformer-1/pytorch/default/1/seg_tversk_val_fold_1.pth.pth')
     state_dict = checkpoint["model_state_dict"]
     model.load_state_dict(state_dict)
     model.eval()
