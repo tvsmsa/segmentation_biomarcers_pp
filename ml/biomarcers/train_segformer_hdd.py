@@ -20,7 +20,7 @@ torch.multiprocessing.set_start_method("spawn", force=True)
 # Dice score для мультикласса
 
 
-@torch.no_grad()
+#@torch.no_grad()
 # Основная функция обучения
 
 def train_fold(patience=5):
