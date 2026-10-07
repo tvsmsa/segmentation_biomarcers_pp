@@ -31,11 +31,36 @@ def infer_source(dataset: str, name: str) -> str:
     return match.group(1)
 
 
+def resolve_patch_dir(root: Path, preferred: str, role: str, names: list[str]) -> Path:
+    """Locate one complete image/mask folder without mixing same-named patches."""
+    aliases = {preferred, "images" if role == "image" else "masks",
+               "image_patches" if role == "image" else "mask_patches"}
+    # Uploaded datasets may add an extra directory level or retain CSV-era names.
+    candidates = sorted({p for p in root.rglob("*") if p.is_dir() and p.name in aliases})
+    expected = set(names)
+    missing = {p: expected - {f.name for f in p.iterdir() if f.is_file()} for p in candidates}
+    complete = [p for p in candidates if not missing[p]]
+    if len(complete) == 1:
+        return complete[0]
+    if len(complete) > 1:
+        raise ValueError(f"Ambiguous {role} folders under {root}: {complete}. "
+                         "Set the dataset root to the intended copy (containing its CSV).")
+    details = "; ".join(f"{p}: missing {len(missing[p])}, examples {sorted(missing[p])[:3]}"
+                        for p in candidates) or f"no folders named {sorted(aliases)}"
+    raise FileNotFoundError(f"Cannot resolve {role} patches under {root}: {details}. "
+                            "Check the uploaded dataset contents; every CSV patch must exist.")
+
+
 def inspect_dataset(root: Path, dataset: str):
     csv_name, image_dir, mask_dir = SPECS[dataset]
     frame = pd.read_csv(root / csv_name, dtype=str)
     if not {"image", "mask"}.issubset(frame.columns) or frame.empty:
         raise ValueError(f"Missing image/mask columns or empty CSV: {root / csv_name}")
+    if frame[["image", "mask"]].isna().any().any():
+        raise ValueError(f"Empty image/mask paths in {root / csv_name}")
+    image_dir = resolve_patch_dir(root, image_dir, "image", frame.image.map(filename).tolist())
+    mask_dir = resolve_patch_dir(root, mask_dir, "mask", frame["mask"].map(filename).tolist())
+    print(f"{dataset}: images={image_dir}; masks={mask_dir}", flush=True)
     rows, records, source_pixels = [], [], {}
     for row in tqdm(frame.to_dict("records"), desc=f"Check {dataset}", unit="patch"):
         image_name, mask_name = filename(row["image"]), filename(row["mask"])
@@ -44,7 +69,7 @@ def inspect_dataset(root: Path, dataset: str):
         sid = infer_source(dataset, image_name)
         if "source_id" in row and row["source_id"] != sid:
             raise ValueError(f"source_id disagrees with filename: {row}")
-        image_path, mask_path = root / image_dir / image_name, root / mask_dir / mask_name
+        image_path, mask_path = image_dir / image_name, mask_dir / mask_name
         image = np.load(image_path, mmap_mode="r", allow_pickle=False)
         mask = np.load(mask_path, allow_pickle=False)
         if image.shape != (512, 512, 3) or image.dtype != np.uint8:
