@@ -68,7 +68,7 @@ def train_fold(train_folds, val_fold, patience=5):
     gradient_accumulation_steps = 2
     num_training_steps = (len(train_loader) // gradient_accumulation_steps) * config.EPOCHS
     num_warmup_steps = int(0.1 * num_training_steps)
-    
+
     from transformers import get_cosine_schedule_with_warmup
     scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_training_steps)
 

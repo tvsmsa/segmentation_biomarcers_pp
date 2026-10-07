@@ -1,0 +1,16 @@
+model,class_name,iou,dice,precision,recall
+deeplab_cet_idridmaples_1,drusen,0.00016084084798086663,0.00032162996472547077,0.009285425918262305,0.00016364923565128354
+deeplab_cet_idridmaples_1,edema,0.0,0.0,0.0,0.0
+deeplab_cet_idridmaples_1,epiretinal_fibrosis,0.0,0.0,0.0,0.0
+deeplab_cet_idridmaples_1,fibrosis,0.0,0.0,0.0,0.0
+deeplab_cet_idridmaples_1,geographic_atrophy,0.0,0.0,0.0,0.0
+deeplab_cet_idridmaples_1,hard_exudates,0.46326226186610336,0.633191019736002,0.6992740862547409,0.5785195449550276
+deeplab_cet_idridmaples_1,hemorrhages,0.2629803049651509,0.4164440315202021,0.358672166863686,0.4963999107583383
+deeplab_cet_idridmaples_1,laser_coagulates,0.0,0.0,0.0,0.0
+deeplab_cet_idridmaples_1,macular_hole,0.0,0.0,0.0,0.0
+deeplab_cet_idridmaples_1,microaneurysms,0.10105445563323502,0.18355941455251074,0.42682934062466954,0.11692080229411628
+deeplab_cet_idridmaples_1,neovascularization,0.033788610847565764,0.06536851053111083,0.057981658549646466,0.07491232627611273
+deeplab_cet_idridmaples_1,soft_exudates,0.3055665628018307,0.46809802197455946,0.4451442765481943,0.4935476757183621
+deeplab_cet_idridmaples_1,subretinal_hemorrhage,0.0,0.0,0.0,0.0
+deeplab_cet_idridmaples_1,venous_anomalies,0.0,0.0,0.0,0.0
+deeplab_cet_idridmaples_1,MEAN,0.08334378835441904,0.12621304487707932,0.14265621105422852,0.1257474220884006
