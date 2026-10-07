@@ -152,9 +152,9 @@ def main():
     Тестирование модели
     """
 
-    MODEL_PATH = "D:/models/transunet_tversky/TransUnet_Fold3.pth"
+    MODEL_PATH = "D:/models/transunet_dice/transunet_dice_val_fold_3.pth"
     MODEL_TYPE = "transunet"
-    MODEL_NAME = "transunet_cet_idrid_3"
+    MODEL_NAME = "transunet_ced_idrid_3"
     
     #images_dir_test = "D:/idrid_blue/patches"
     images_dir_test = "D:/idrid_final/image_patches"
