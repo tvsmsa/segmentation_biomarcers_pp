@@ -19,17 +19,17 @@ class TransUNet(nn.Module):
         # CNN Encoder
         resnet = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1)
         self.encoder = nn.Sequential(*list(resnet.children())[:-2])
-        
+
         self.patch_size = img_dim // 32
         self.hidden_dim = 768
-        
+
         # Свертка 1x1 для проекции карт признаков CNN в нужную размерность (2048 -> 768)
         self.projection = nn.Conv2d(2048, self.hidden_dim, kernel_size=1)
-        
+
         # Encoder
         encoder_layer = nn.TransformerEncoderLayer(d_model=self.hidden_dim, nhead=12, dropout=0.1, batch_first=True)
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=6)
-        
+
         # Decoder
         self.decoder = nn.Sequential(
             nn.Conv2d(self.hidden_dim, 512, kernel_size=3, padding=1),
@@ -50,7 +50,7 @@ class TransUNet(nn.Module):
             nn.Upsample(scale_factor=4, mode='bilinear', align_corners=True),
             nn.Conv2d(64, num_classes, kernel_size=1)
         )
-        
+
     def forward(self, x):
         cnn_features = self.encoder(x)
         projected = self.projection(cnn_features)

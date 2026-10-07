@@ -111,7 +111,7 @@ def print_class_metrics(metrics, class_names, title):
     print(f"\n{'='*80}")
     print(f"{title}")
     print(f"{'='*80}")
-    
+
     # Сортируем классы по имени
     sorted_classes = sorted(class_names.items(), key=lambda x: x[1])
 
@@ -135,7 +135,7 @@ def print_class_metrics(metrics, class_names, title):
         dice = metrics['dice'].get(class_id, 0.0)
         precision = metrics['precision'].get(class_id, 0.0)
         recall = metrics['recall'].get(class_id, 0.0)
-        
+
         iou_values.append(iou)
         dice_values.append(dice)
         print(f"{class_name:<30} {iou:<8.4f} {dice:<8.4f} {precision:<10.4f} {recall:<10.4f} {n if n is not None else '-':<6}")
