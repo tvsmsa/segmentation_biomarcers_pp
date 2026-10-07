@@ -29,7 +29,7 @@ def train_fold(patience=5):
     df_val_1 = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[2160:3200].reset_index(drop=True).drop(columns=['Unnamed: 0'])
     df_val_2 = pd.read_csv("/kaggle/input/datasets/andreikarabin/maples-prepared/maples_dr_prepared/test_patches.csv").reset_index(drop=True).drop(columns=['source_id'], axis=1)
 
-    BASE_PATH_IMAGE = "/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_test/idrid_test/images_patches"
+    BASE_PATH_IMAGE = "/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_test/idrid_test/image_patches"
     BASE_PATH_MASK = "/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_test/idrid_test/mask_patches"
 
     for df in [df_train, df_val_1]:
