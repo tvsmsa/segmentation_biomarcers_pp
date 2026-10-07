@@ -11,7 +11,7 @@ class Config():
     #: размер батча
     BATCH_SIZE = 8
     #: количество эпох обучения
-    EPOCHS = 20
+    EPOCHS = 30
     #: на чем идет обучение
     DEVICE = "cuda"
     #: Классы
@@ -44,4 +44,4 @@ class Config():
     IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
     IMAGENET_STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
-    CHECKPOINT_DIR = "ml/biomarcers/checkpoints_segformer_15hours"
+    CHECKPOINT_DIR = "ml/biomarcers/checkpoints_segformer"

@@ -23,10 +23,12 @@ torch.multiprocessing.set_start_method("spawn", force=True)
 @torch.no_grad()
 # Основная функция обучения
 
-def train_fold(train_folds, val_fold, patience=5):
-    #train_dfs = [pd.read_csv( f"D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{f}.csv") for f in train_folds]
-    df_train = pd.read_csv("D:/combined_dataset/df_train_1.csv").reset_index(drop=True)
-    df_val = pd.read_csv( f"D:/combined_dataset/df_test_1.csv")
+def train_fold(patience=5):
+    #df_train = pd.read_csv("D:/idrid_test/idrid_dataset.csv").iloc[0:2160]
+    df_train = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[0:2160]
+    df_val_1 = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[2160:3200].reset_index(drop=True).drop(columns=['Unnamed: 0'])
+    df_val_2 = pd.read_csv("/kaggle/input/datasets/andreikarabin/maples-prepared/maples_dr_prepared/test_patches.csv").reset_index(drop=True).drop(columns=['source_id'], axis=1)
+    df_val = pd.concat([df_val_1, df_val_2])
 
     # Datasets
     train_dataset = ImageMaskDataset(df_train, augment_prob=0.5)
@@ -61,16 +63,9 @@ def train_fold(train_folds, val_fold, patience=5):
 
     tversky_loss = TverskyLoss(ignore_index=config.IGNORE_INDEX).to(config.DEVICE)
 
-    dice_loss = smp.losses.DiceLoss(mode='multiclass',ignore_index=config.IGNORE_INDEX)
-
     def combined_loss(logits, targets):
         return ce_loss(logits, targets) + 2.0 * tversky_loss(logits, targets)
         #return ce_loss(logits, targets) + 2.0 * dice_loss(logits, targets)
-
-    # focal_loss = FocalLoss(gamma=2.0).to(config.DEVICE)
-    #
-    # def combined_loss(logits, targets):
-    #     return ce_loss(logits, targets) + 2.0 * focal_loss(logits, targets)
 
     scaler = torch.cuda.amp.GradScaler()
 
@@ -78,7 +73,7 @@ def train_fold(train_folds, val_fold, patience=5):
     epochs_no_improve = 0
 
     # Checkpoint path
-    checkpoint_dir = os.path.join(config.CHECKPOINT_DIR, f"fold_{val_fold}")
+    checkpoint_dir = os.path.join(config.CHECKPOINT_DIR, f"idrid_train")
     os.makedirs(checkpoint_dir, exist_ok=True)
 
     for epoch in range(config.EPOCHS):
@@ -87,7 +82,7 @@ def train_fold(train_folds, val_fold, patience=5):
         start_time = time.time()
         loader_iter = tqdm(
             train_loader,
-            desc=f"Train Folds: {train_folds}, Val Fold: {val_fold} | Epoch {epoch+1}",
+            desc=f"Epoch {epoch+1}",
             unit="batch")
 
         optimizer.zero_grad()
@@ -125,7 +120,7 @@ def train_fold(train_folds, val_fold, patience=5):
         all_dice = 0.0
         count = 0
         val_iter = tqdm(
-            val_loader, desc=f"Validation Fold {val_fold} Epoch {epoch+1}", unit="batch")
+            val_loader, desc=f"Epoch {epoch+1}", unit="batch")
         for imgs, masks in val_iter:
             imgs = imgs.to(config.DEVICE)
             masks = masks.to(config.DEVICE)
@@ -182,22 +177,4 @@ def train_fold(train_folds, val_fold, patience=5):
 if __name__ == "__main__":
     torch.multiprocessing.set_start_method("spawn", force=True)
 
-    # Задаём фолд вручную
-    FOLD = 3
-
-    # Определяем train и val фолды
-    if FOLD == 1:
-        train_folds = [1, 3]
-        val_fold = 2
-    elif FOLD == 2:
-        train_folds = [1, 2]
-        val_fold = 3
-    elif FOLD == 3:
-        train_folds = [2, 3]
-        val_fold = 1
-    else:
-        raise ValueError("FOLD должен быть 1, 2 или 3")
-
-    print(f"TRAIN FOLDS: {train_folds}, VAL FOLD: {val_fold}")
-
-    train_fold(train_folds, val_fold, patience=5)
+    train_fold(patience=5)
