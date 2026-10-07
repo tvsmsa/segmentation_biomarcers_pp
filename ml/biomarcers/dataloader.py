@@ -9,33 +9,24 @@ config = Config()
 
 
 class ImageMaskDataset(Dataset):
-    def __init__(self, images_dir, masks_dir, augment_prob=0.5):
+    def __init__(self, df, augment_prob=0.5):
         """
         df: DataFrame с путями к .npy файлам
         augment_prob: вероятность применить flip/rotate
         """
-        self.images_dir = Path(images_dir)
-        self.masks_dir = Path(masks_dir)
+        self.df = df.reset_index(drop=True)
         self.augment_prob = augment_prob
-        self.image_paths = []
-        self.mask_paths = []
-        
-        for img_path in self.images_dir.glob("*.npy"):
-            mask_path = self.masks_dir / f"{img_path}.npy"
-            if img_path.exists():
-                self.image_paths.append(img_path)
-        for mask_path in self.masks_dir.glob("*.npy"):
-            if mask_path.exists():
-                self.mask_paths.append(mask_path)
 
 
     def __len__(self):
-        return len(self.image_paths)
+        return len(self.df)
 
     def __getitem__(self, idx):
+        row = self.df.iloc[idx]
+
         # Загружаем уже предобработанные .npy
-        img = np.load(self.image_paths[idx])           # uint8, HxWx3
-        mask = np.load(self.mask_paths[idx])           # uint8, HxW
+        img = np.load(row["image"])           # uint8, HxWx3
+        mask = np.load(row["mask"])           # uint8, HxW
 
         # Геометрическая аугментация случайно
 

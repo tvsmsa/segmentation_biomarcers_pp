@@ -132,16 +132,14 @@ def main():
     
     MODEL_PATH = "D:/models/deeplab_dice/deeplab_model_3.pth"
     MODEL_TYPE = "deeplab" 
+    TEST_CSV = "D:/combined_dataset/df_test_1.csv"
     MODEL_NAME = "deeplab_ced_fold_3_test_ds"
     #D:\models\segformer_tversky
     
-    #print(f"\nLoading data from: {TEST_CSV}")
-    #df_test = pd.read_csv(TEST_CSV)
-    #D:\idrid_combined\images
-    images_dir_test = "D:/idrid_final/image_patches"
-    masks_dir_test = "D:/idrid_test/mask_patches"
-    
-    test_dataset = ImageMaskDataset(images_dir_test,masks_dir_test, augment_prob=0.0)
+    print(f"\nLoading data from: {TEST_CSV}")
+    df_test = pd.read_csv(TEST_CSV)
+
+    test_dataset = ImageMaskDataset(df_test, augment_prob=0.0)
     test_loader = DataLoader(
         test_dataset,
         batch_size=config.BATCH_SIZE,
