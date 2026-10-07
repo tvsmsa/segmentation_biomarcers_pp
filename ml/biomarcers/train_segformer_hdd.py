@@ -49,16 +49,16 @@ def train_fold(patience=5):
         df["image"] = df["image"].str.replace(
             r"C:\Users\Andrey\Documents\Codex\2026-09-27\segmentation-biomarcers-pp-ml-biomarcers-test-3\work\maples_dr_prepared",
             BASE_PATH_MAPLES,
-            regex=True
+            regex=False
         )
         df["mask"] = df["mask"].str.replace(
             r"C:\Users\Andrey\Documents\Codex\2026-09-27\segmentation-biomarcers-pp-ml-biomarcers-test-3\work\maples_dr_prepared",
             BASE_PATH_MAPLES,
-            regex=True
+            regex=False
         )
 
-        df["image"] = df["image"].str.replace("\\", "/")
-        df["mask"] = df["mask"].str.replace("\\", "/")
+        df["image"] = df["image"].str.replace("\\", "/", regex=False)
+        df["mask"] = df["mask"].str.replace("\\", "/", regex=False)
 
     df_val = pd.concat([df_val_1, df_val_2])
 
