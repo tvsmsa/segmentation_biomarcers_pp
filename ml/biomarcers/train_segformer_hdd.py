@@ -28,6 +28,38 @@ def train_fold(patience=5):
     df_train = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[0:2160]
     df_val_1 = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[2160:3200].reset_index(drop=True).drop(columns=['Unnamed: 0'])
     df_val_2 = pd.read_csv("/kaggle/input/datasets/andreikarabin/maples-prepared/maples_dr_prepared/test_patches.csv").reset_index(drop=True).drop(columns=['source_id'], axis=1)
+
+    BASE_PATH = "/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_test"
+
+    for df in [df_train, df_val_1]:
+        df["image"] = df["image"].str.replace(
+            r"D:/idrid_test",
+            BASE_PATH,
+            regex=True
+        )
+        df["mask"] = df["mask"].str.replace(
+            r"D:/idrid_test",
+            BASE_PATH,
+            regex=True
+        )
+
+
+    BASE_PATH_MAPLES = "/kaggle/input/datasets/andreikarabin/maples-prepared/maples_dr_prepared"
+    for df in [df_val_2]:
+        df["image"] = df["image"].str.replace(
+            r"C:\Users\Andrey\Documents\Codex\2026-09-27\segmentation-biomarcers-pp-ml-biomarcers-test-3\work\maples_dr_prepared",
+            BASE_PATH_MAPLES,
+            regex=True
+        )
+        df["mask"] = df["mask"].str.replace(
+            r"C:\Users\Andrey\Documents\Codex\2026-09-27\segmentation-biomarcers-pp-ml-biomarcers-test-3\work\maples_dr_prepared",
+            BASE_PATH_MAPLES,
+            regex=True
+        )
+
+        df["image"] = df["image"].str.replace("\\", "/")
+        df["mask"] = df["mask"].str.replace("\\", "/")
+
     df_val = pd.concat([df_val_1, df_val_2])
 
     # Datasets
