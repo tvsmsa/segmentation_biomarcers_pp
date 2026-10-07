@@ -11,6 +11,7 @@ import segmentation_models_pytorch as smp
 from transformers import SegformerConfig, SegformerForSemanticSegmentation
 
 from ml.biomarcers.config import Config
+from .segformer_compat import align_segformer_state
 
 
 class TransUNet(nn.Module):
@@ -69,6 +70,8 @@ def load_model(path: Path, architecture: str):
     checkpoint = checkpoint_data(path)
     model = build_model(architecture)
     state = checkpoint.get("model_state_dict", checkpoint)
+    if architecture == "segformer":
+        state = align_segformer_state(state, model.state_dict())
     model.load_state_dict(state, strict=True)
     return model
 

@@ -50,6 +50,10 @@ def train_experiment(args, architecture, loss_kind, initial, experiment, run_dir
     device = torch.device(args.device)
     seed_everything(args.seed + experiment)
     model = load_model(last_path if saved is not None else initial, architecture).to(device)
+    if saved is not None and architecture == "segformer" and list(saved["model_state_dict"]) != list(model.state_dict()):
+        raise ValueError("SegFormer layout changed since this training run. Resume with the original "
+                         "Transformers version: optimizer states depend on parameter order. "
+                         "For a new experiment use a different output directory.")
     optimizer = make_optimizer(model, architecture, args.encoder_lr, args.head_lr, args.transunet_lr, args.weight_decay)
     train_batches = (len(train) + args.batch_size - 1) // args.batch_size
     scheduler = make_scheduler(optimizer, train_batches, args.accumulation, args.epochs)

@@ -97,7 +97,7 @@ def make_optimizer(model, architecture, encoder_lr, head_lr, transunet_lr, weigh
     if architecture == "transunet":
         groups = [{"params": model.parameters(), "lr": transunet_lr}]
     elif architecture == "segformer":
-        groups = [{"params": model.segformer.encoder.parameters(), "lr": encoder_lr},
+        groups = [{"params": model.segformer.parameters(), "lr": encoder_lr},
                   {"params": model.decode_head.parameters(), "lr": head_lr}]
     else:
         groups = [{"params": model.encoder.parameters(), "lr": encoder_lr},
