@@ -130,14 +130,33 @@ def main():
     Тестирование модели
     """
     
-    MODEL_PATH = "D:/models/deeplab_dice/deeplab_model_3.pth"
-    MODEL_TYPE = "deeplab" 
-    TEST_CSV = "D:/combined_dataset/df_test_1.csv"
-    MODEL_NAME = "deeplab_ced_fold_3_test_ds"
+    MODEL_PATH = "D:/models/idrid_segformer_cet_1.pth"
+    MODEL_TYPE = "segformer" 
+    df_val_1 = pd.read_csv("D:/idrid_test/idrid_dataset.csv").iloc[2160:3200].reset_index(drop=True).drop(columns=['Unnamed: 0'])
+    df_val_2 = pd.read_csv("D:/maples_dr_prepared/test_patches.csv").reset_index(drop=True).drop(columns=['source_id'], axis=1)
+    BASE_PATH_MAPLES = "D:/maples_dr_prepared"
+    for df in [df_val_2]:
+        df["image"] = df["image"].str.replace(
+            r"C:\Users\Andrey\Documents\Codex\2026-09-27\segmentation-biomarcers-pp-ml-biomarcers-test-3\work\maples_dr_prepared",
+            BASE_PATH_MAPLES,
+            regex=False
+        )
+        df["mask"] = df["mask"].str.replace(
+            r"C:\Users\Andrey\Documents\Codex\2026-09-27\segmentation-biomarcers-pp-ml-biomarcers-test-3\work\maples_dr_prepared",
+            BASE_PATH_MAPLES,
+            regex=False
+        )
+
+        df["image"] = df["image"].str.replace("\\", "/", regex=False)
+        df["mask"] = df["mask"].str.replace("\\", "/", regex=False)
+
+    df_test = pd.concat([df_val_1, df_val_2])
+    #TEST_CSV = "D:/combined_dataset/df_test_1.csv"
+    MODEL_NAME = "idrid_segformer_cet_1"
     #D:\models\segformer_tversky
     
-    print(f"\nLoading data from: {TEST_CSV}")
-    df_test = pd.read_csv(TEST_CSV)
+    #print(f"\nLoading data from: {TEST_CSV}")
+    #df_test = pd.read_csv(TEST_CSV)
 
     test_dataset = ImageMaskDataset(df_test, augment_prob=0.0)
     test_loader = DataLoader(
