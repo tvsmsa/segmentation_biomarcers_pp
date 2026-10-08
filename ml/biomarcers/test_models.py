@@ -76,7 +76,7 @@ def save_test_results(metrics, id_to_class, model_name, mean_dice):
     """
     Сохранение метрик в CSV
     """
-    results_dir = "biomarcers/new_idrid_results"
+    results_dir = "biomarcers/idrid_maples_results"
     os.makedirs(results_dir, exist_ok=True)
 
     rows = []
@@ -130,7 +130,7 @@ def main():
     Тестирование модели
     """
     
-    MODEL_PATH = "D:/models/idrid_segformer_cet_1.pth"
+    MODEL_PATH = "D:/models/idrid_segformer_cet_2.pth"
     MODEL_TYPE = "segformer" 
     df_val_1 = pd.read_csv("D:/idrid_test/idrid_dataset.csv").iloc[2160:3200].reset_index(drop=True).drop(columns=['Unnamed: 0'])
     df_val_2 = pd.read_csv("D:/maples_dr_prepared/test_patches.csv").reset_index(drop=True).drop(columns=['source_id'], axis=1)
@@ -152,7 +152,7 @@ def main():
 
     df_test = pd.concat([df_val_1, df_val_2])
     #TEST_CSV = "D:/combined_dataset/df_test_1.csv"
-    MODEL_NAME = "idrid_segformer_cet_1"
+    MODEL_NAME = "idrid_segformer_cet_2"
     #D:\models\segformer_tversky
     
     #print(f"\nLoading data from: {TEST_CSV}")
