@@ -26,13 +26,12 @@ torch.multiprocessing.set_start_method("spawn", force=True)
 def train_fold(patience=5):
     #df_train = pd.read_csv("D:/idrid_test/idrid_dataset.csv").iloc[0:2160]
     df_train = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[0:2160]
-    df_val_1 = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[2160:3200].reset_index(drop=True).drop(columns=['Unnamed: 0'])
-    df_val_2 = pd.read_csv("/kaggle/input/datasets/andreikarabin/maples-prepared/maples_dr_prepared/test_patches.csv").reset_index(drop=True).drop(columns=['source_id'], axis=1)
+    df_val = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[2160:3200].reset_index(drop=True).drop(columns=['Unnamed: 0'])
 
     BASE_PATH_IMAGE = "/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_test/idrid_test/image_patches"
     BASE_PATH_MASK = "/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_test/idrid_test/mask_patches"
 
-    for df in [df_train, df_val_1]:
+    for df in [df_train, df_val]:
         df["image"] = df["image"].str.replace(
             r"D:/idrid_test/images",
             BASE_PATH_IMAGE,
@@ -43,25 +42,6 @@ def train_fold(patience=5):
             BASE_PATH_MASK,
             regex=True
         )
-
-
-    BASE_PATH_MAPLES = "/kaggle/input/datasets/andreikarabin/maples-prepared/maples_dr_prepared"
-    for df in [df_val_2]:
-        df["image"] = df["image"].str.replace(
-            r"C:\Users\Andrey\Documents\Codex\2026-09-27\segmentation-biomarcers-pp-ml-biomarcers-test-3\work\maples_dr_prepared",
-            BASE_PATH_MAPLES,
-            regex=False
-        )
-        df["mask"] = df["mask"].str.replace(
-            r"C:\Users\Andrey\Documents\Codex\2026-09-27\segmentation-biomarcers-pp-ml-biomarcers-test-3\work\maples_dr_prepared",
-            BASE_PATH_MAPLES,
-            regex=False
-        )
-
-        df["image"] = df["image"].str.replace("\\", "/", regex=False)
-        df["mask"] = df["mask"].str.replace("\\", "/", regex=False)
-
-    df_val = pd.concat([df_val_1, df_val_2])
 
     # Datasets
     train_dataset = ImageMaskDataset(df_train, augment_prob=0.5)
@@ -78,10 +58,6 @@ def train_fold(patience=5):
         num_labels=config.NUM_CLASSES,
         ignore_mismatched_sizes=True
     ).to(config.DEVICE)
-    checkpoint = torch.load('/kaggle/input/models/tvsmsa/seg-tversk-2/pytorch/default/1/seg_tversk_val_fold_2.pth')
-    state_dict = checkpoint["model_state_dict"]
-    model.load_state_dict(state_dict)
-    model.eval()
     optimizer = torch.optim.AdamW([
         # Backbone: low LR
         {'params': model.segformer.encoder.parameters(), 'lr': 1e-5},
