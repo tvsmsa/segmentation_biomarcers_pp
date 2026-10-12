@@ -18,7 +18,7 @@ torch.multiprocessing.set_start_method("spawn", force=True)
 # Без изменений
 @torch.no_grad()
 
-def train_fold(train_folds, val_fold, patience=5):
+def train_fold(patience=5):
     df_train = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[0:2160]
     df_val = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[2160:3200].reset_index(drop=True).drop(columns=['Unnamed: 0'])
 
@@ -74,14 +74,14 @@ def train_fold(train_folds, val_fold, patience=5):
     best_dice = 0.0
     epochs_no_improve = 0
 
-    checkpoint_dir = os.path.join(config.CHECKPOINT_DIR, f"fold_{val_fold}")
+    checkpoint_dir = os.path.join(config.CHECKPOINT_DIR)
     os.makedirs(checkpoint_dir, exist_ok=True)
 
     for epoch in range(config.EPOCHS):
         model.train()
         running_loss = 0.0
         start_time = time.time()
-        loader_iter = tqdm(train_loader, desc=f"Train Folds: {train_folds}, Val Fold: {val_fold} | Epoch {epoch+1}", unit="batch")
+        loader_iter = tqdm(train_loader, desc=f"Epoch {epoch+1}", unit="batch")
 
         optimizer.zero_grad()
         for i, (imgs, masks) in enumerate(loader_iter):
@@ -112,7 +112,7 @@ def train_fold(train_folds, val_fold, patience=5):
         model.eval()
         all_dice = 0.0
         count = 0
-        val_iter = tqdm(val_loader, desc=f"Validation Fold {val_fold} Epoch {epoch+1}", unit="batch")
+        val_iter = tqdm(val_loader, desc=f"Epoch {epoch+1}", unit="batch")
         for imgs, masks in val_iter:
             imgs = imgs.to(config.DEVICE)
             masks = masks.to(config.DEVICE)
