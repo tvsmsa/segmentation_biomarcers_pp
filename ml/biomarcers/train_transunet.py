@@ -16,7 +16,7 @@ config = TransUNetConfig()
 torch.multiprocessing.set_start_method("spawn", force=True)
 
 # Без изменений
-@torch.no_grad()
+#@torch.no_grad()
 
 def train_fold(patience=5):
     df_train = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[0:2160]
