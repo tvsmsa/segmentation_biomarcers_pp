@@ -74,8 +74,8 @@ def train_fold(train_folds, val_fold, patience=5):
     dice_loss = smp.losses.DiceLoss(mode='multiclass',ignore_index=config.IGNORE_INDEX)
 
     def combined_loss(logits, targets):
-        return ce_loss(logits, targets) + 2.0 * tversky_loss(logits, targets)
-        #return ce_loss(logits, targets) + 2.0 * dice_loss(logits, targets)
+        #return ce_loss(logits, targets) + 2.0 * tversky_loss(logits, targets)
+        return ce_loss(logits, targets) + 2.0 * dice_loss(logits, targets)
 
     # focal_loss = FocalLoss(gamma=2.0).to(config.DEVICE)
     #
