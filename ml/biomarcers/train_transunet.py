@@ -138,8 +138,9 @@ def train_fold(train_folds, val_fold, patience=5):
         avg_dice = all_dice / count
         print(f"Validation Dice: {avg_dice:.4f}")
 
-        # Сохранение чекпоинтов
-        checkpoint_path = os.path.join(checkpoint_dir, f"checkpoint_epoch_{epoch+1}.pth")
+        # Последний чекпоинт перезаписывается после каждой эпохи,
+        # поэтому в каталоге не накапливаются checkpoint_epoch_*.pth.
+        checkpoint_path = os.path.join(checkpoint_dir, "last_model.pth")
         torch.save({
             "epoch": epoch+1,
             "model_state_dict": model.state_dict(),
