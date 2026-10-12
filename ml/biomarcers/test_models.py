@@ -71,6 +71,70 @@ def test_model(model, test_loader, model_name="Model", save_results=True):
 
     return metrics, mean_dice
 
+def test_ensemble(models, test_loader, model_name="Ensemble", save_results=True):
+    """
+    Тестирует ансамбль моделей через усреднение softmax-логитов.
+    models: список уже загруженных моделей (eval будет выставлен внутри).
+    """
+    for m in models:
+        m.eval()
+
+    all_preds = []
+    all_targets = []
+
+    test_iter = tqdm(test_loader, desc=f"Testing {model_name}", unit="batch")
+
+    with torch.no_grad():
+        for imgs, masks in test_iter:
+            imgs = imgs.to(config.DEVICE)
+            masks = masks.to(config.DEVICE)
+
+            # Суммируем softmax-вероятности по всем моделям
+            probs_sum = None
+            for model in models:
+                if hasattr(model, 'segformer'):
+                    outputs = model(pixel_values=imgs)
+                    logits = outputs.logits
+                else:
+                    logits = model(imgs)  # TransUNet
+
+                # Приводим к размеру маски (на случай разных выходов)
+                if logits.shape[-2:] != masks.shape[-2:]:
+                    logits = F.interpolate(
+                        logits,
+                        size=masks.shape[-2:],
+                        mode="bilinear",
+                        align_corners=False,
+                    )
+
+                probs = F.softmax(logits, dim=1)
+                probs_sum = probs if probs_sum is None else probs_sum + probs
+
+            mean_probs = probs_sum / len(models)
+            preds = mean_probs.argmax(dim=1)  # (B, H, W)
+
+            all_preds.append(preds.cpu())
+            all_targets.append(masks.cpu())
+
+    all_preds = torch.cat(all_preds, dim=0)
+    all_targets = torch.cat(all_targets, dim=0)
+
+    metrics = compute_per_class_metrics(
+        all_preds,
+        all_targets,
+        num_classes=config.NUM_CLASSES,
+        ignore_index=config.IGNORE_INDEX,
+    )
+
+    id_to_class = {v: k for k, v in config.CLASS_TO_ID.items()}
+    id_to_class[0] = "background"
+
+    mean_dice = print_class_metrics(metrics, id_to_class, title=f"Metrics for {model_name}")
+
+    if save_results:
+        save_test_results(metrics, id_to_class, model_name, mean_dice)
+
+    return metrics, mean_dice
 
 def save_test_results(metrics, id_to_class, model_name, mean_dice):
     """
@@ -130,29 +194,15 @@ def main():
     Тестирование модели
     """
     
-    MODEL_PATH = "D:/models/idrid_segformer_cet_2.pth"
+    #MODEL_PATH = "D:/models/segformer_cet_only_idrid.pth"
+    MODEL_PATHS = [
+        "D:/models/segformer_tversky/seg_tversk_val_fold_1.pth",
+        "D:/models/segformer_tversky/seg_tversk_val_fold_2.pth",
+        "D:/models/segformer_tversky/seg_tversk_val_fold_3.pth",
+    ]
     MODEL_TYPE = "segformer" 
-    df_val_1 = pd.read_csv("D:/idrid_test/idrid_dataset.csv").iloc[2160:3200].reset_index(drop=True).drop(columns=['Unnamed: 0'])
-    df_val_2 = pd.read_csv("D:/maples_dr_prepared/test_patches.csv").reset_index(drop=True).drop(columns=['source_id'], axis=1)
-    BASE_PATH_MAPLES = "D:/maples_dr_prepared"
-    for df in [df_val_2]:
-        df["image"] = df["image"].str.replace(
-            r"C:\Users\Andrey\Documents\Codex\2026-09-27\segmentation-biomarcers-pp-ml-biomarcers-test-3\work\maples_dr_prepared",
-            BASE_PATH_MAPLES,
-            regex=False
-        )
-        df["mask"] = df["mask"].str.replace(
-            r"C:\Users\Andrey\Documents\Codex\2026-09-27\segmentation-biomarcers-pp-ml-biomarcers-test-3\work\maples_dr_prepared",
-            BASE_PATH_MAPLES,
-            regex=False
-        )
-
-        df["image"] = df["image"].str.replace("\\", "/", regex=False)
-        df["mask"] = df["mask"].str.replace("\\", "/", regex=False)
-
-    df_test = pd.concat([df_val_1, df_val_2])
-    #TEST_CSV = "D:/combined_dataset/df_test_1.csv"
-    MODEL_NAME = "idrid_segformer_cet_2"
+    df_test = pd.read_csv("D:/idrid_test/idrid_dataset.csv")
+    MODEL_NAME = "segformer_cet_ensemble"
     #D:\models\segformer_tversky
     
     #print(f"\nLoading data from: {TEST_CSV}")
@@ -167,9 +217,11 @@ def main():
         pin_memory=True
     )
 
-    model = load_model(MODEL_PATH, MODEL_TYPE)
+    #model = load_model(MODEL_PATH, MODEL_TYPE)
+    models = [load_model(p, MODEL_TYPE) for p in MODEL_PATHS]
 
-    metrics, mean_dice = test_model(model, test_loader, MODEL_NAME, save_results=True)
+    #metrics, mean_dice = test_model(model, test_loader, MODEL_NAME, save_results=True)
+    metrics, mean_dice = test_ensemble( models, test_loader, MODEL_NAME, save_results=True )
     print(f"Model: {MODEL_NAME}")
     print(mean_dice)
     print(f"Results saved to: idrid_results/{MODEL_NAME}.csv")
