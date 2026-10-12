@@ -19,33 +19,23 @@ torch.multiprocessing.set_start_method("spawn", force=True)
 @torch.no_grad()
 
 def train_fold(train_folds, val_fold, patience=5):
-    #train_dfs = [pd.read_csv(f"D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{f}.csv") for f in train_folds]
-    # Для kaggle
-    train_dfs = [pd.read_csv(f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{f}.csv") for f in train_folds]
-    df_train = pd.concat(train_dfs).reset_index(drop=True)
-    df_val = pd.read_csv(f"D:\\aspirantura\\PROF\\npy_article_fold\\train_article_fold_{val_fold}.csv")
-    # Для kaggle
-    #df_val = pd.read_csv(f"/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold/train_article_fold_{val_fold}.csv")
+    df_train = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[0:2160]
+    df_val = pd.read_csv("/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_dataset.csv").iloc[2160:3200].reset_index(drop=True).drop(columns=['Unnamed: 0'])
 
-    #Для kaggle
+    BASE_PATH_IMAGE = "/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_test/idrid_test/image_patches"
+    BASE_PATH_MASK = "/kaggle/input/datasets/tvsmsa/idrid-tvsmsa/idrid_test/idrid_test/mask_patches"
 
-    # BASE_PATH = "/kaggle/input/datasets/tvsmsa/aspirantura-biomarkers/aspirantura/PROF/npy_article_fold"
-
-    # for df in [df_train, df_val]:
-    #     df["image"] = df["image"].str.replace(
-    #         r"D:\\aspirantura\\PROF\\npy_article_fold",
-    #         BASE_PATH,
-    #         regex=True
-    #     )
-    #     df["mask"] = df["mask"].str.replace(
-    #         r"D:\\aspirantura\\PROF\\npy_article_fold",
-    #         BASE_PATH,
-    #         regex=True
-    #     )
-
-
-    #     df["image"] = df["image"].str.replace("\\", "/")
-    #     df["mask"] = df["mask"].str.replace("\\", "/")
+    for df in [df_train, df_val]:
+        df["image"] = df["image"].str.replace(
+            r"D:/idrid_test/images",
+            BASE_PATH_IMAGE,
+            regex=True
+        )
+        df["mask"] = df["mask"].str.replace(
+            r"D:/idrid_test/masks",
+            BASE_PATH_MASK,
+            regex=True
+        )
 
     train_dataset = ImageMaskDataset(df_train, augment_prob=0.5)
     val_dataset = ImageMaskDataset(df_val, augment_prob=0.0)
@@ -170,19 +160,4 @@ def train_fold(train_folds, val_fold, patience=5):
 if __name__ == "__main__":
     torch.multiprocessing.set_start_method("spawn", force=True)
 
-    FOLD = 3
-
-    if FOLD == 1:
-        train_folds = [2, 3]
-        val_fold = 1
-    elif FOLD == 2:
-        train_folds = [1, 3]
-        val_fold = 2
-    elif FOLD == 3:
-        train_folds = [1, 2]
-        val_fold = 3
-    else:
-        raise ValueError("FOLD должен быть 1, 2 или 3")
-
-    print(f"TRAIN FOLDS: {train_folds}, VAL FOLD: {val_fold}")
-    train_fold(train_folds, val_fold, patience=5)
+    train_fold(patience=5)
