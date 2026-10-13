@@ -12,7 +12,7 @@ class TransUNetConfig(SegformerConfig):
     #: размер батча
     BATCH_SIZE = 8
     #: количество эпох обучения
-    EPOCHS = 30
+    EPOCHS = 35
     #: на чем идет обучение
     DEVICE = "cuda"
     #: Классы
