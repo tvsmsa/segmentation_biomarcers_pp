@@ -160,8 +160,7 @@ def train_fold(train_folds, val_fold, patience=5):
 
         # Сохраняем чекпоинт каждой эпохи
 
-        checkpoint_path = os.path.join(
-            checkpoint_dir, f"checkpoint_epoch_{epoch+1}.pth")
+        checkpoint_path = os.path.join(checkpoint_dir, f"last_model.pth")
         torch.save({
             "epoch": epoch+1,
             "model_state_dict": model.state_dict(),
