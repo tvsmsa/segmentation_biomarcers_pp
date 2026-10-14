@@ -6,6 +6,22 @@ from ml.biomarcers.config import Config
 
 config = Config()
 
+OLD_TO_NEW = {
+    0:   0,     # background
+    6:   3,     # hard_exudates  (EX)
+    7:   4,     # hemorrhages    (HE)
+    10:  6,     # microaneurysms (MA)
+    12:  7,     # soft_exudates  (SE)
+    # Остальные старые значения (если есть) → 255 (ignore)
+}
+
+def remap_mask(mask):
+    """Перекодирует старые значения в новые ID, остальное → 255."""
+    new_mask = np.full(mask.shape, 255, dtype=np.uint8)
+    for old, new in OLD_TO_NEW.items():
+        new_mask[mask == old] = new
+    return new_mask
+
 
 class ImageMaskDataset(Dataset):
     def __init__(self, df, augment_prob=0.5):
@@ -25,6 +41,9 @@ class ImageMaskDataset(Dataset):
         # Загружаем уже предобработанные .npy
         img = np.load(row["image"])           # uint8, HxWx3
         mask = np.load(row["mask"])           # uint8, HxW
+
+        if mask.ndim == 2:
+            mask = remap_mask(mask)
 
         # Геометрическая аугментация случайно
 
