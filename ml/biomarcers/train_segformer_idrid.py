@@ -6,6 +6,8 @@ From the cloned repository root in Kaggle::
 
 The prepared IDRiD dataset and MAPLES best_model.pth must be attached as Kaggle
 inputs. Pass --data-root and --checkpoint if automatic discovery is ambiguous.
+The official IDRiD test.csv is used as validation after each epoch and selects
+the best checkpoint; it is not an independent final test in this protocol.
 """
 
 import argparse
@@ -235,7 +237,7 @@ def evaluate(model, loader, device):
     tp = torch.zeros(len(ANNOTATED_CLASSES), dtype=torch.float64)
     fp = torch.zeros_like(tp)
     fn = torch.zeros_like(tp)
-    for images, targets in tqdm(loader, desc="Evaluation", unit="batch"):
+    for images, targets in tqdm(loader, desc="Validation", unit="batch"):
         images, targets = images.to(device), targets.to(device)
         logits = model(pixel_values=images).logits
         logits = F.interpolate(logits, targets.shape[-2:], mode="bilinear", align_corners=False)
@@ -263,9 +265,9 @@ def train(train_df, test_df, checkpoint_path, output_dir, args):
         ImageMaskDataset(train_df, augment_prob=0.5), batch_size=args.batch_size,
         shuffle=True, num_workers=args.train_workers, pin_memory=True,
     )
-    test_loader = DataLoader(
+    val_loader = DataLoader(
         ImageMaskDataset(test_df, augment_prob=0.0), batch_size=args.batch_size,
-        shuffle=False, num_workers=args.test_workers, pin_memory=True,
+        shuffle=False, num_workers=args.val_workers, pin_memory=True,
     )
     optimizer = torch.optim.AdamW([
         {"params": model.segformer.parameters(), "lr": args.encoder_lr},
@@ -278,6 +280,9 @@ def train(train_df, test_df, checkpoint_path, output_dir, args):
     )
     scaler = torch.cuda.amp.GradScaler(enabled=args.amp)
     output_dir.mkdir(parents=True, exist_ok=True)
+    best_dice = -1.0
+    no_improvement = 0
+    history = []
     for epoch in range(args.epochs):
         model.train()
         optimizer.zero_grad()
@@ -304,26 +309,43 @@ def train(train_df, test_df, checkpoint_path, output_dir, args):
                 scheduler.step()
             running_loss += loss.item()
         epoch_loss = running_loss / len(train_loader)
-        print(f"Epoch {epoch + 1}: train loss={epoch_loss:.4f}, time={time.time() - start:.1f}s")
+        validation = evaluate(model, val_loader, device)
+        score = validation["mean_dice"]
+        if not math.isfinite(score):
+            raise FloatingPointError("Non-finite validation Dice")
+        history.append({"epoch": epoch + 1, "train_loss": epoch_loss, **validation})
+        print(f"Epoch {epoch + 1}: train loss={epoch_loss:.4f}, "
+              f"validation Dice={score:.4f}, time={time.time() - start:.1f}s")
         saved = {
             "epoch": epoch + 1,
             "source_maples_epoch": initial_checkpoint.get("epoch"),
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "loss": epoch_loss,
+            "val_dice": score,
+            "val_dice_per_class": validation["dice"],
+            "validation_split": "official_idrid_test",
             "class_names": CLASS_NAMES,
             "annotated_classes": ANNOTATED_CLASSES,
             "loss_policy": "partial CE: background accepts 0,1,5; 2x Tversky on 2,3,4,6",
             "model_config": model.config.to_dict(),
         }
         torch.save(saved, output_dir / "last_epoch.pth")
-    torch.save(saved, output_dir / "final_model.pth")
-    independent_test = evaluate(model, test_loader, device)
-    (output_dir / "test_metrics.json").write_text(
-        json.dumps(independent_test, indent=2), encoding="utf-8"
+        if score > best_dice:
+            best_dice = score
+            no_improvement = 0
+            torch.save(saved, output_dir / "best_model.pth")
+            print(f"Best model updated: validation Dice={best_dice:.4f}")
+        else:
+            no_improvement += 1
+            if no_improvement >= args.patience:
+                print(f"Early stopping after epoch {epoch + 1}")
+                break
+    (output_dir / "validation_history.json").write_text(
+        json.dumps(history, indent=2), encoding="utf-8"
     )
-    print(f"Independent official test Dice: {independent_test['mean_dice']:.4f}")
-    print(f"Checkpoints and test metrics: {output_dir}")
+    print(f"Best validation Dice on official IDRiD test: {best_dice:.4f}")
+    print(f"Checkpoints and validation history: {output_dir}")
 
 
 def main():
@@ -334,15 +356,16 @@ def main():
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--train-workers", type=int, default=4)
-    parser.add_argument("--test-workers", type=int, default=2)
+    parser.add_argument("--val-workers", type=int, default=2)
+    parser.add_argument("--patience", type=int, default=5)
     parser.add_argument("--encoder-lr", type=float, default=1e-6)
     parser.add_argument("--decoder-lr", type=float, default=5e-5)
     parser.add_argument("--amp", action="store_true",
                         help="Enable fp16 mixed precision only if it is stable on your GPU")
     args = parser.parse_args()
-    if args.epochs < 1 or args.batch_size < 1:
-        parser.error("epochs and batch-size must be positive")
-    if args.train_workers < 0 or args.test_workers < 0:
+    if args.epochs < 1 or args.batch_size < 1 or args.patience < 1:
+        parser.error("epochs, batch-size and patience must be positive")
+    if args.train_workers < 0 or args.val_workers < 0:
         parser.error("worker counts must be nonnegative")
     if args.encoder_lr <= 0 or args.decoder_lr <= 0:
         parser.error("learning rates must be positive")
