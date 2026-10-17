@@ -205,7 +205,7 @@ def train(train_df, val_df, output_dir, epochs=30, batch_size=8,
             "val_dice": avg_dice,
             "class_names": CLASS_NAMES,
         }
-        torch.save(checkpoint, output_dir / f"checkpoint_epoch_{epoch + 1}.pth")
+        torch.save(checkpoint, output_dir / f"last_epoch.pth")
         if avg_dice > best_dice:
             best_dice = avg_dice
             epochs_no_improve = 0
