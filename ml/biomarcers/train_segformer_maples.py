@@ -16,7 +16,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from transformers import SegformerForSemanticSegmentation
+from transformers import SegformerConfig, SegformerForSemanticSegmentation
 from transformers import get_cosine_schedule_with_warmup
 
 from ml.biomarcers.config import Config
@@ -100,7 +100,7 @@ def load_split(root, split):
 
 
 def train(train_df, val_df, output_dir, epochs=30, batch_size=8,
-          train_workers=8, val_workers=4, patience=5):
+          train_workers=4, val_workers=2, patience=5):
     config = Config()
     config.NUM_CLASSES = len(CLASS_NAMES)
     if not torch.cuda.is_available():
@@ -114,16 +114,17 @@ def train(train_df, val_df, output_dir, epochs=30, batch_size=8,
     val_loader = DataLoader(val_dataset, batch_size=batch_size,
                             shuffle=False, num_workers=val_workers, pin_memory=True)
 
+    pretrained_id = "nvidia/segformer-b2-finetuned-ade-512-512"
+    model_config = SegformerConfig.from_pretrained(pretrained_id)
+    model_config.num_labels = config.NUM_CLASSES
+    model_config.id2label = CLASS_NAMES
+    model_config.label2id = {label: class_id for class_id, label in CLASS_NAMES.items()}
     model = SegformerForSemanticSegmentation.from_pretrained(
-        "nvidia/segformer-b2-finetuned-ade-512-512",
-        num_labels=config.NUM_CLASSES,
-        id2label=CLASS_NAMES,
-        label2id={label: class_id for class_id, label in CLASS_NAMES.items()},
-        ignore_mismatched_sizes=True,
+        pretrained_id, config=model_config, ignore_mismatched_sizes=True
     ).to(device)
 
     optimizer = torch.optim.AdamW([
-        {"params": model.segformer.encoder.parameters(), "lr": 1e-5},
+        {"params": model.segformer.parameters(), "lr": 1e-5},
         {"params": model.decode_head.parameters(), "lr": 5e-4},
     ])
     num_training_steps = math.ceil(len(train_loader) / GRADIENT_ACCUMULATION_STEPS) * epochs
@@ -227,8 +228,8 @@ def main():
                         default=Path("/kaggle/working/segformer_maples"))
     parser.add_argument("--epochs", type=int, default=40)
     parser.add_argument("--batch-size", type=int, default=8)
-    parser.add_argument("--train-workers", type=int, default=8)
-    parser.add_argument("--val-workers", type=int, default=4)
+    parser.add_argument("--train-workers", type=int, default=4)
+    parser.add_argument("--val-workers", type=int, default=2)
     parser.add_argument("--patience", type=int, default=5)
     args = parser.parse_args()
     if args.epochs < 1 or args.batch_size < 1 or args.patience < 1:
