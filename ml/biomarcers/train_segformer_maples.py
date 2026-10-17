@@ -225,7 +225,7 @@ def main():
     parser.add_argument("--data-root", type=Path)
     parser.add_argument("--output-dir", type=Path,
                         default=Path("/kaggle/working/segformer_maples"))
-    parser.add_argument("--epochs", type=int, default=30)
+    parser.add_argument("--epochs", type=int, default=40)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--train-workers", type=int, default=8)
     parser.add_argument("--val-workers", type=int, default=4)
